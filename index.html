@@ -13,14 +13,19 @@
       background: white;
       color: black;
     }
+
     h2 {
       margin-top: 30px;
+      font-size: 2.2rem;
     }
+
     button {
       font-size: 20px;
       padding: 12px 20px;
       margin-top: 20px;
+      cursor: pointer;
     }
+
     #output {
       font-size: 22px;
       margin-top: 25px;
@@ -30,29 +35,44 @@
   </style>
 </head>
 <body>
-  <h2>Stationing App</h2>
-  <button onclick="getLocation()">Get My Station</button>
+  <h2>Stationing</h2>
+  <button onclick="startTracking()">Get My Station</button>
   <div id="output">Loading project...</div>
 
   <script>
     let centerline = null;
+    let watchId = null;
 
-    fetch('project1.geojson')
-      .then(response => {
+    // Change this to your actual beginning station later.
+    // Example:
+    // 0+00 = 0
+    // 1663+00 = 166300
+    const START_STATION_FEET = 5000;
+
+    async function loadProject() {
+      try {
+        const response = await fetch('./project1.geojson');
+
         if (!response.ok) {
-          throw new Error('Could not load project1.geojson');
+          throw new Error('HTTP ' + response.status + ' loading project1.geojson');
         }
-        return response.json();
-      })
-      .then(data => {
-        centerline = data;
-        document.getElementById("output").innerHTML = "Project loaded. Tap the button.";
-      })
-      .catch(error => {
-        document.getElementById("output").innerHTML = "File error: " + error.message;
-      });
 
-    function getLocation() {
+        const text = await response.text();
+        const data = JSON.parse(text);
+
+        centerline = data;
+
+        document.getElementById("output").innerHTML =
+          "Project loaded.<br>Tap the button and wait a few seconds for GPS to update.";
+      } catch (error) {
+        document.getElementById("output").innerHTML =
+          "File error: " + error.message;
+      }
+    }
+
+    loadProject();
+
+    function startTracking() {
       if (!centerline) {
         document.getElementById("output").innerHTML = "Project not loaded yet.";
         return;
@@ -63,41 +83,62 @@
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(
+      document.getElementById("output").innerHTML =
+        "Getting GPS...<br>Stand still a few seconds, then walk.";
+
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+
+      watchId = navigator.geolocation.watchPosition(
         showPosition,
         function(error) {
-          document.getElementById("output").innerHTML = "Location error: " + error.message;
+          document.getElementById("output").innerHTML =
+            "Location error: " + error.message;
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+          maximumAge: 0,
+          timeout: 10000
         }
       );
     }
 
     function showPosition(position) {
       try {
+        const accuracyMeters = position.coords.accuracy;
+
+        if (accuracyMeters > 10) {
+          document.getElementById("output").innerHTML =
+            "GPS too inaccurate: " + accuracyMeters.toFixed(1) + " m<br>" +
+            "Move to open sky and wait for a better fix.<br><br>" +
+            "Lat: " + position.coords.latitude.toFixed(6) + "<br>" +
+            "Lon: " + position.coords.longitude.toFixed(6);
+          return;
+        }
+
         const pt = turf.point([
           position.coords.longitude,
           position.coords.latitude
         ]);
 
-        const snapped = turf.nearestPointOnLine(centerline, pt, {units: 'meters'});
+        const snapped = turf.nearestPointOnLine(centerline, pt, { units: 'meters' });
+
         const distanceAlongMeters = snapped.properties.location;
         const offsetMeters = snapped.properties.dist;
 
-        const stationFeet = distanceAlongMeters * 3.28084;
+        const stationFeet = (distanceAlongMeters * 3.28084) + START_STATION_FEET;
         const offsetFeet = offsetMeters * 3.28084;
 
         document.getElementById("output").innerHTML =
           "Station: " + formatStation(stationFeet) + "<br>" +
           "Offset: " + offsetFeet.toFixed(1) + " ft<br>" +
-          "GPS Accuracy: " + position.coords.accuracy.toFixed(1) + " m<br>" +
+          "GPS Accuracy: " + accuracyMeters.toFixed(1) + " m<br>" +
           "Lat: " + position.coords.latitude.toFixed(6) + "<br>" +
           "Lon: " + position.coords.longitude.toFixed(6);
       } catch (error) {
-        document.getElementById("output").innerHTML = "Processing error: " + error.message;
+        document.getElementById("output").innerHTML =
+          "Processing error: " + error.message;
       }
     }
 
