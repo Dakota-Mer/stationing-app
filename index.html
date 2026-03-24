@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stationing App</title>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,7 +14,7 @@
       color: black;
     }
     h2 {
-      margin-top: 40px;
+      margin-top: 30px;
     }
     button {
       font-size: 20px;
@@ -23,34 +24,87 @@
     #output {
       font-size: 22px;
       margin-top: 25px;
-      line-height: 1.5;
+      line-height: 1.6;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
   <h2>Stationing App</h2>
-  <button onclick="getLocation()">Get My Location</button>
-  <div id="output">Waiting...</div>
+  <button onclick="getLocation()">Get My Station</button>
+  <div id="output">Loading project...</div>
 
   <script>
+    let centerline = null;
+
+    fetch('project1.geojson')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Could not load project1.geojson');
+        }
+        return response.json();
+      })
+      .then(data => {
+        centerline = data;
+        document.getElementById("output").innerHTML = "Project loaded. Tap the button.";
+      })
+      .catch(error => {
+        document.getElementById("output").innerHTML = "File error: " + error.message;
+      });
+
     function getLocation() {
+      if (!centerline) {
+        document.getElementById("output").innerHTML = "Project not loaded yet.";
+        return;
+      }
+
       if (!navigator.geolocation) {
         document.getElementById("output").innerHTML = "Geolocation not supported.";
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        function(position) {
-          document.getElementById("output").innerHTML =
-            "Lat: " + position.coords.latitude.toFixed(6) +
-            "<br>Lon: " + position.coords.longitude.toFixed(6) +
-            "<br>Accuracy: " + position.coords.accuracy.toFixed(1) + " meters";
-        },
+        showPosition,
         function(error) {
-          document.getElementById("output").innerHTML =
-            "Location error: " + error.message;
+          document.getElementById("output").innerHTML = "Location error: " + error.message;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
+    }
+
+    function showPosition(position) {
+      try {
+        const pt = turf.point([
+          position.coords.longitude,
+          position.coords.latitude
+        ]);
+
+        const snapped = turf.nearestPointOnLine(centerline, pt, {units: 'meters'});
+        const distanceAlongMeters = snapped.properties.location;
+        const offsetMeters = snapped.properties.dist;
+
+        const stationFeet = distanceAlongMeters * 3.28084;
+        const offsetFeet = offsetMeters * 3.28084;
+
+        document.getElementById("output").innerHTML =
+          "Station: " + formatStation(stationFeet) + "<br>" +
+          "Offset: " + offsetFeet.toFixed(1) + " ft<br>" +
+          "GPS Accuracy: " + position.coords.accuracy.toFixed(1) + " m<br>" +
+          "Lat: " + position.coords.latitude.toFixed(6) + "<br>" +
+          "Lon: " + position.coords.longitude.toFixed(6);
+      } catch (error) {
+        document.getElementById("output").innerHTML = "Processing error: " + error.message;
+      }
+    }
+
+    function formatStation(feet) {
+      const sta = Math.floor(feet / 100);
+      const remainder = feet - (sta * 100);
+      return sta + "+" + remainder.toFixed(2).padStart(5, '0');
     }
   </script>
 </body>
