@@ -1,152 +1,315 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Stationing App</title>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <meta name="theme-color" content="#111111" />
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #1b1b1b;
+      border-radius: 16px;
+      padding: 20px;
+      box-sizing: border-box;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+
+    h1 {
+      margin: 0 0 18px 0;
+      font-size: 24px;
       text-align: center;
-      padding: 30px;
-      background: white;
-      color: black;
     }
 
-    h2 {
-      margin-top: 30px;
-      font-size: 2.2rem;
+    .row {
+      margin-bottom: 14px;
     }
 
-    button {
-      font-size: 20px;
-      padding: 12px 20px;
-      margin-top: 20px;
-      cursor: pointer;
+    .label {
+      font-size: 13px;
+      color: #bdbdbd;
+      margin-bottom: 4px;
     }
 
-    #output {
-      font-size: 22px;
-      margin-top: 25px;
-      line-height: 1.6;
-      white-space: pre-line;
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+      line-height: 1.2;
+      word-break: break-word;
     }
+
+    .small {
+      font-size: 16px;
+      font-weight: normal;
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 10px 12px;
+      background: #2a2a2a;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #d7d7d7;
+    }
+
+    .good { color: #7CFC98; }
+    .bad { color: #ff8e8e; }
   </style>
 </head>
 <body>
-  <h2>Stationing</h2>
-  <button onclick="startTracking()">Get My Station</button>
-  <div id="output">Loading project...</div>
+  <div class="card">
+    <h1>Stationing App</h1>
 
+    <div class="row">
+      <div class="label">Station</div>
+      <div id="station" class="value">--+--</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Offset</div>
+      <div id="offset" class="value">--.- ft</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Side</div>
+      <div id="side" class="value small">--</div>
+    </div>
+
+    <div class="row">
+      <div class="label">GPS Accuracy</div>
+      <div id="accuracy" class="value small">--</div>
+    </div>
+
+    <div class="row">
+      <div class="label">Coordinates</div>
+      <div id="coords" class="value small">--</div>
+    </div>
+
+    <div id="status" class="status">Loading centerline...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
   <script>
+    // =========================
+    // SETTINGS
+    // =========================
+    const GEOJSON_FILE = "project1.geojson";
+    const MAX_GPS_ACCURACY_METERS = 10;
+
+    // =========================
+    // APP STATE
+    // =========================
     let centerline = null;
-    let watchId = null;
 
-    // Change this to your actual beginning station later.
-    // Example:
-    // 0+00 = 0
-    // 1663+00 = 166300
-    const START_STATION_FEET = 5000;
-
-    async function loadProject() {
-      try {
-        const response = await fetch('./project1.geojson');
-
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status + ' loading project1.geojson');
-        }
-
-        const text = await response.text();
-        const data = JSON.parse(text);
-
-        centerline = data;
-
-        document.getElementById("output").innerHTML =
-          "Project loaded.<br>Tap the button and wait a few seconds for GPS to update.";
-      } catch (error) {
-        document.getElementById("output").innerHTML =
-          "File error: " + error.message;
-      }
-    }
-
-    loadProject();
-
-    function startTracking() {
-      if (!centerline) {
-        document.getElementById("output").innerHTML = "Project not loaded yet.";
-        return;
-      }
-
-      if (!navigator.geolocation) {
-        document.getElementById("output").innerHTML = "Geolocation not supported.";
-        return;
-      }
-
-      document.getElementById("output").innerHTML =
-        "Getting GPS...<br>Stand still a few seconds, then walk.";
-
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-
-      watchId = navigator.geolocation.watchPosition(
-        showPosition,
-        function(error) {
-          document.getElementById("output").innerHTML =
-            "Location error: " + error.message;
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 10000
-        }
-      );
-    }
-
-    function showPosition(position) {
-      try {
-        const accuracyMeters = position.coords.accuracy;
-
-        if (accuracyMeters > 10) {
-          document.getElementById("output").innerHTML =
-            "GPS too inaccurate: " + accuracyMeters.toFixed(1) + " m<br>" +
-            "Move to open sky and wait for a better fix.<br><br>" +
-            "Lat: " + position.coords.latitude.toFixed(6) + "<br>" +
-            "Lon: " + position.coords.longitude.toFixed(6);
-          return;
-        }
-
-        const pt = turf.point([
-          position.coords.longitude,
-          position.coords.latitude
-        ]);
-
-        const snapped = turf.nearestPointOnLine(centerline, pt, { units: 'meters' });
-
-        const distanceAlongMeters = snapped.properties.location;
-        const offsetMeters = snapped.properties.dist;
-
-        const stationFeet = (distanceAlongMeters * 3.28084) + START_STATION_FEET;
-        const offsetFeet = offsetMeters * 3.28084;
-
-        document.getElementById("output").innerHTML =
-          "Station: " + formatStation(stationFeet) + "<br>" +
-          "Offset: " + offsetFeet.toFixed(1) + " ft<br>" +
-          "GPS Accuracy: " + accuracyMeters.toFixed(1) + " m<br>" +
-          "Lat: " + position.coords.latitude.toFixed(6) + "<br>" +
-          "Lon: " + position.coords.longitude.toFixed(6);
-      } catch (error) {
-        document.getElementById("output").innerHTML =
-          "Processing error: " + error.message;
-      }
+    // =========================
+    // UI HELPERS
+    // =========================
+    function setStatus(message, isGood = true) {
+      const el = document.getElementById("status");
+      el.innerHTML = isGood
+        ? `<span class="good">${message}</span>`
+        : `<span class="bad">${message}</span>`;
     }
 
     function formatStation(feet) {
-      const sta = Math.floor(feet / 100);
-      const remainder = feet - (sta * 100);
-      return sta + "+" + remainder.toFixed(2).padStart(5, '0');
+      const rounded = Math.round(feet);
+      const staHundreds = Math.floor(rounded / 100);
+      const staRemainder = rounded % 100;
+      return `${staHundreds}+${staRemainder.toString().padStart(2, "0")}`;
     }
+
+    // =========================
+    // GEOMETRY HELPERS
+    // =========================
+
+    // Find the segment direction to use for left/right testing.
+    // nearestPointOnLine gives an index tied to the nearest line part/location.
+    // We use that to pick the matching segment.
+    function getSegmentForSnap(lineCoords, snappedIndex) {
+      if (lineCoords.length < 2) return null;
+
+      // Middle of line: use index -> index+1
+      if (snappedIndex >= 0 && snappedIndex < lineCoords.length - 1) {
+        return [lineCoords[snappedIndex], lineCoords[snappedIndex + 1]];
+      }
+
+      // If snap lands at the very end, use previous segment
+      if (snappedIndex >= lineCoords.length - 1) {
+        return [lineCoords[lineCoords.length - 2], lineCoords[lineCoords.length - 1]];
+      }
+
+      // Fallback
+      return [lineCoords[0], lineCoords[1]];
+    }
+
+    // Determine whether GPS point is left or right of the line segment direction.
+    // Positive cross product = left
+    // Negative cross product = right
+    //
+    // Because lon/lat are angular units, we scale longitude by cos(latitude)
+    // so the left/right math behaves better locally.
+    function getSideOfSegment(segmentStart, segmentEnd, pointCoord) {
+      const avgLat = ((segmentStart[1] + segmentEnd[1] + pointCoord[1]) / 3) * Math.PI / 180;
+      const cosLat = Math.cos(avgLat);
+
+      const ax = segmentStart[0] * cosLat;
+      const ay = segmentStart[1];
+      const bx = segmentEnd[0] * cosLat;
+      const by = segmentEnd[1];
+      const px = pointCoord[0] * cosLat;
+      const py = pointCoord[1];
+
+      const abx = bx - ax;
+      const aby = by - ay;
+      const apx = px - ax;
+      const apy = py - ay;
+
+      const cross = (abx * apy) - (aby * apx);
+
+      // Tiny values mean basically on the line
+      if (Math.abs(cross) < 1e-12) return "On Line";
+
+      return cross > 0 ? "Left" : "Right";
+    }
+
+    async function loadCenterline() {
+      const response = await fetch(GEOJSON_FILE);
+      if (!response.ok) {
+        throw new Error(`Could not load ${GEOJSON_FILE}`);
+      }
+
+      const data = await response.json();
+
+      if (data.type === "FeatureCollection") {
+        const lineFeature = data.features.find(f =>
+          f.geometry &&
+          (f.geometry.type === "LineString" || f.geometry.type === "MultiLineString")
+        );
+
+        if (!lineFeature) {
+          throw new Error("No LineString or MultiLineString found in GeoJSON.");
+        }
+
+        return lineFeature;
+      }
+
+      if (data.type === "Feature" &&
+          data.geometry &&
+          (data.geometry.type === "LineString" || data.geometry.type === "MultiLineString")) {
+        return data;
+      }
+
+      throw new Error("GeoJSON must contain a LineString or MultiLineString.");
+    }
+
+    function updatePosition(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const accuracy = position.coords.accuracy;
+
+      document.getElementById("accuracy").textContent = `${accuracy.toFixed(1)} m`;
+      document.getElementById("coords").textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+      if (accuracy > MAX_GPS_ACCURACY_METERS) {
+        setStatus(`Waiting for better GPS accuracy. Current: ${accuracy.toFixed(1)} m`, false);
+        return;
+      }
+
+      if (!centerline) {
+        setStatus("Centerline not loaded yet.", false);
+        return;
+      }
+
+      try {
+        const gpsPoint = turf.point([lon, lat]);
+
+        // nearestPointOnLine returns:
+        // - dist = distance from point to line
+        // - location = distance along line from start to snapped point
+        // - index = closest line part index
+        const snapped = turf.nearestPointOnLine(centerline, gpsPoint, { units: "kilometers" });
+        const snappedCoords = snapped.geometry.coordinates;
+
+        const stationFeet = turf.convertLength(snapped.properties.location, "kilometers", "feet");
+        const offsetFeet = turf.convertLength(snapped.properties.dist, "kilometers", "feet");
+
+        let sideText = "Unknown";
+
+        if (centerline.geometry.type === "LineString") {
+          const lineCoords = centerline.geometry.coordinates;
+          const snappedIndex = snapped.properties.index ?? 0;
+          const segment = getSegmentForSnap(lineCoords, snappedIndex);
+
+          if (segment) {
+            sideText = getSideOfSegment(segment[0], segment[1], [lon, lat]);
+          }
+        } else if (centerline.geometry.type === "MultiLineString") {
+          // For now, just use the matched part of the multiline
+          const multiIndex = snapped.properties.multiFeatureIndex ?? 0;
+          const lineCoords = centerline.geometry.coordinates[multiIndex];
+          const snappedIndex = snapped.properties.index ?? 0;
+          const segment = getSegmentForSnap(lineCoords, snappedIndex);
+
+          if (segment) {
+            sideText = getSideOfSegment(segment[0], segment[1], [lon, lat]);
+          }
+        }
+
+        document.getElementById("station").textContent = formatStation(stationFeet);
+
+        if (sideText === "Left" || sideText === "Right") {
+          document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
+          document.getElementById("side").textContent = sideText;
+        } else {
+          document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
+          document.getElementById("side").textContent = sideText;
+        }
+
+        setStatus("GPS locked and station updated.");
+      } catch (err) {
+        setStatus(`Geometry error: ${err.message}`, false);
+      }
+    }
+
+    function handleGpsError(error) {
+      setStatus(`GPS error: ${error.message}`, false);
+    }
+
+    async function startApp() {
+      try {
+        centerline = await loadCenterline();
+        setStatus("Centerline loaded. Waiting for GPS...");
+
+        if (!navigator.geolocation) {
+          setStatus("Geolocation is not supported on this device/browser.", false);
+          return;
+        }
+
+        navigator.geolocation.watchPosition(updatePosition, handleGpsError, {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 10000
+        });
+      } catch (err) {
+        setStatus(err.message, false);
+      }
+    }
+
+    startApp();
   </script>
 </body>
 </html>
