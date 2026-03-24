@@ -1,34 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Stationing App</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stationing App</title>
   <style>
-    body { font-family: Arial; text-align: center; padding: 20px; }
-    button { font-size: 20px; padding: 10px 20px; }
-    #output { font-size: 24px; margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: white;
+      color: black;
+    }
+    h2 {
+      margin-top: 40px;
+    }
+    button {
+      font-size: 20px;
+      padding: 12px 20px;
+      margin-top: 20px;
+    }
+    #output {
+      font-size: 22px;
+      margin-top: 25px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
+  <h2>Stationing App</h2>
+  <button onclick="getLocation()">Get My Location</button>
+  <div id="output">Waiting...</div>
 
-<h2>Stationing App</h2>
+  <script>
+    function getLocation() {
+      if (!navigator.geolocation) {
+        document.getElementById("output").innerHTML = "Geolocation not supported.";
+        return;
+      }
 
-<button onclick="getLocation()">Get My Station</button>
-
-<div id="output">Waiting...</div>
-
-<script>
-function getLocation() {
-  navigator.geolocation.getCurrentPosition(showPosition);
-}
-
-function showPosition(position) {
-  document.getElementById("output").innerHTML =
-    "Lat: " + position.coords.latitude.toFixed(6) +
-    "<br>Lon: " + position.coords.longitude.toFixed(6) +
-    "<br>Accuracy: " + position.coords.accuracy.toFixed(1) + " meters";
-}
-</script>
-
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          document.getElementById("output").innerHTML =
+            "Lat: " + position.coords.latitude.toFixed(6) +
+            "<br>Lon: " + position.coords.longitude.toFixed(6) +
+            "<br>Accuracy: " + position.coords.accuracy.toFixed(1) + " meters";
+        },
+        function(error) {
+          document.getElementById("output").innerHTML =
+            "Location error: " + error.message;
+        }
+      );
+    }
+  </script>
 </body>
 </html>
