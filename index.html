@@ -362,16 +362,6 @@
       cursor: pointer;
     }
 
-    .captureCloneHost {
-      position: fixed;
-      left: -10000px;
-      top: 0;
-      width: 430px;
-      pointer-events: none;
-      opacity: 0;
-      z-index: -1;
-    }
-
     @media (max-width: 390px) {
       .title {
         font-size: 30px;
@@ -444,7 +434,7 @@
     </div>
 
     <div class="noteWrap">
-      <textarea id="noteInput" placeholder="Example note"></textarea>
+      <textarea id="noteInput" placeholder="Add note"></textarea>
     </div>
 
     <div class="cameraWrap">
@@ -466,8 +456,6 @@
       <button id="closeCaptureBtn" class="captureOverlayBtn" type="button">Close</button>
     </div>
   </div>
-
-  <div id="captureCloneHost" class="captureCloneHost" aria-hidden="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
 
@@ -515,7 +503,6 @@
     let lastAcceptedRawPoint = null;
     let lastAcceptedSnappedResult = null;
     let lastProcessedTimestamp = 0;
-    let html2canvasLoader = null;
     let latestCaptureDataUrl = "";
 
     const stationEl = document.getElementById("station");
@@ -528,7 +515,6 @@
     const fastModeBtnEl = document.getElementById("fastModeBtn");
     const slowModeBtnEl = document.getElementById("slowModeBtn");
     const captureBtnEl = document.getElementById("captureBtn");
-    const captureAreaEl = document.getElementById("captureArea");
     const noteInputEl = document.getElementById("noteInput");
 
     const captureOverlayEl = document.getElementById("captureOverlay");
@@ -536,7 +522,6 @@
     const capturePreviewEl = document.getElementById("capturePreview");
     const saveCaptureBtnEl = document.getElementById("saveCaptureBtn");
     const closeCaptureBtnEl = document.getElementById("closeCaptureBtn");
-    const captureCloneHostEl = document.getElementById("captureCloneHost");
 
     function setStatus(message, isGood = true) {
       statusEl.textContent = message;
@@ -876,36 +861,6 @@
       });
     }
 
-    function loadHtml2CanvasIfNeeded() {
-      if (window.html2canvas) {
-        return Promise.resolve(window.html2canvas);
-      }
-
-      if (html2canvasLoader) {
-        return html2canvasLoader;
-      }
-
-      html2canvasLoader = new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
-        script.onload = () => resolve(window.html2canvas);
-        script.onerror = () => reject(new Error("Could not load html2canvas."));
-        document.head.appendChild(script);
-      });
-
-      return html2canvasLoader;
-    }
-
-    function dataUrlToDownload(dataUrl, filename) {
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = filename;
-      link.rel = "noopener";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
-
     function openCaptureOverlay(dataUrl) {
       latestCaptureDataUrl = dataUrl;
       capturePreviewEl.src = dataUrl;
@@ -927,89 +882,251 @@
       captureOverlayEl.setAttribute("aria-hidden", "true");
     }
 
-    function buildCaptureClone() {
-      captureCloneHostEl.innerHTML = "";
-
-      const clone = captureAreaEl.cloneNode(true);
-      clone.id = "captureAreaClone";
-
-      const noteClone = clone.querySelector("#noteInput");
-      if (noteClone) {
-        noteClone.value = noteInputEl.value;
-      }
-
-      const titleClone = clone.querySelector(".title");
-      if (titleClone) {
-        titleClone.style.fontFamily = "Arial, sans-serif";
-        titleClone.style.transform = "none";
-        titleClone.style.fontWeight = "700";
-        titleClone.style.letterSpacing = "0";
-      }
-
-      const fastClone = clone.querySelector("#fastModeBtn");
-      const slowClone = clone.querySelector("#slowModeBtn");
-      const captureCloneBtn = clone.querySelector("#captureBtn");
-
-      function makeSafeButton(btn, text, active) {
-        if (!btn) return;
-        btn.innerHTML = "";
-        btn.style.display = "flex";
-        btn.style.alignItems = "center";
-        btn.style.justifyContent = "center";
-        btn.style.fontFamily = "Arial, sans-serif";
-        btn.style.fontSize = "12px";
-        btn.style.fontWeight = "700";
-        btn.style.letterSpacing = "0.3px";
-        btn.style.color = active ? "#16927F" : "#D9D9D9";
-        btn.style.borderColor = active ? "#16927F" : "#D9D9D9";
-        btn.style.boxShadow = "none";
-        btn.style.background = "transparent";
-        btn.textContent = text;
-      }
-
-      makeSafeButton(fastClone, "FAST", currentMode === "fast");
-      makeSafeButton(slowClone, "SLOW", currentMode === "slow");
-      makeSafeButton(captureCloneBtn, "CAP", true);
-
-      clone.querySelectorAll(".modeIcon, .cameraIcon").forEach(el => el.remove());
-
-      clone.querySelectorAll("*").forEach(el => {
-        el.style.textShadow = "none";
-        el.style.filter = "none";
-        el.style.backdropFilter = "none";
-        el.style.webkitBackdropFilter = "none";
-        el.style.animation = "none";
-        el.style.transition = "none";
-      });
-
-      captureCloneHostEl.appendChild(clone);
-      return clone;
+    function triggerDownloadFromDataUrl(dataUrl, filename) {
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = filename;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
 
-    async function renderCaptureFromClone(html2canvas) {
-      const clone = buildCaptureClone();
+    function roundRectPath(ctx, x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
 
-      try {
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    function fillRoundRect(ctx, x, y, width, height, radius, color) {
+      ctx.save();
+      roundRectPath(ctx, x, y, width, height, radius);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    }
 
-        const canvas = await html2canvas(clone, {
-          backgroundColor: "#1B1B1B",
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          logging: false,
-          foreignObjectRendering: false
-        });
+    function strokeRoundRect(ctx, x, y, width, height, radius, color, lineWidth = 1) {
+      ctx.save();
+      roundRectPath(ctx, x, y, width, height, radius);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+      ctx.restore();
+    }
 
-        const dataUrl = canvas.toDataURL("image/png");
-        if (!dataUrl || dataUrl === "data:,") {
-          throw new Error("Could not generate image data.");
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+      const rawText = String(text || "").replace(/\r/g, "");
+      const paragraphs = rawText.split("\n");
+      const lines = [];
+
+      for (const paragraph of paragraphs) {
+        const words = paragraph.split(/\s+/).filter(Boolean);
+
+        if (words.length === 0) {
+          lines.push("");
+          continue;
         }
 
-        return dataUrl;
-      } finally {
-        captureCloneHostEl.innerHTML = "";
+        let line = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+          const testLine = line + " " + words[i];
+          if (ctx.measureText(testLine).width <= maxWidth) {
+            line = testLine;
+          } else {
+            lines.push(line);
+            line = words[i];
+          }
+        }
+
+        lines.push(line);
       }
+
+      const finalLines = lines.slice(0, maxLines);
+      if (lines.length > maxLines && finalLines.length > 0) {
+        let last = finalLines[finalLines.length - 1];
+        while (ctx.measureText(last + "…").width > maxWidth && last.length > 0) {
+          last = last.slice(0, -1);
+        }
+        finalLines[finalLines.length - 1] = last + "…";
+      }
+
+      for (let i = 0; i < finalLines.length; i++) {
+        ctx.fillText(finalLines[i], x, y + i * lineHeight);
+      }
+    }
+
+    function renderCaptureCanvas() {
+      const width = 860;
+      const height = 1280;
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("Could not create canvas context.");
+      }
+
+      ctx.fillStyle = "#111111";
+      ctx.fillRect(0, 0, width, height);
+
+      const cardX = 70;
+      const cardY = 70;
+      const cardW = width - 140;
+      const cardH = height - 140;
+      const pad = 36;
+
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.42)";
+      ctx.shadowBlur = 40;
+      ctx.shadowOffsetY = 12;
+      fillRoundRect(ctx, cardX, cardY, cardW, cardH, 36, "#1B1B1B");
+      ctx.restore();
+
+      const innerX = cardX + pad;
+      const innerW = cardW - pad * 2;
+      let y = cardY + 38;
+
+      const btnSize = 64;
+      const btnRadius = 18;
+
+      function drawModeButton(x, yPos, label, isActive) {
+        strokeRoundRect(ctx, x, yPos, btnSize, btnSize, btnRadius, isActive ? "#16927F" : "#D9D9D9", 4);
+        ctx.fillStyle = isActive ? "#16927F" : "#D9D9D9";
+        ctx.font = "700 20px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(label, x + btnSize / 2, yPos + btnSize / 2 + 1);
+      }
+
+      drawModeButton(innerX, y, "F", currentMode === "fast");
+      drawModeButton(cardX + cardW - pad - btnSize, y, "S", currentMode === "slow");
+
+      ctx.fillStyle = "#EA9C01";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.font = "700 52px Arial";
+      ctx.fillText("Stationing", cardX + cardW / 2, y + 47);
+
+      y += 92;
+
+      ctx.fillStyle = "#1BB69F";
+      ctx.textAlign = "left";
+      ctx.font = "400 23px Arial";
+      ctx.fillText("Project:", innerX, y);
+
+      y += 16;
+
+      fillRoundRect(ctx, innerX, y, innerW, 74, 24, "#2A2A2A");
+      strokeRoundRect(ctx, innerX, y, innerW, 74, 24, "#106D5F", 4);
+
+      ctx.fillStyle = "#B8E8E1";
+      ctx.font = "400 31px Arial";
+      ctx.textBaseline = "middle";
+      const projectName = projectSelectEl.options[projectSelectEl.selectedIndex]?.text || getCurrentProject().name;
+      ctx.fillText(projectName, innerX + 22, y + 37);
+
+      ctx.strokeStyle = "#1BB69F";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(innerX + innerW - 34, y + 29);
+      ctx.lineTo(innerX + innerW - 22, y + 43);
+      ctx.lineTo(innerX + innerW - 10, y + 29);
+      ctx.stroke();
+
+      y += 126;
+
+      const col1X = innerX;
+      const col2X = innerX + innerW * 0.48;
+      const col3X = innerX + innerW * 0.73;
+
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#1BB69F";
+      ctx.font = "400 21px Arial";
+      ctx.fillText("Station", col1X, y);
+      ctx.fillText("Side", col2X, y);
+      ctx.fillText("Offset", col3X, y);
+
+      y += 54;
+
+      ctx.fillStyle = "#B8E8E1";
+      ctx.font = "700 56px Arial";
+      ctx.fillText(stationEl.textContent || "--+--", col1X, y);
+
+      ctx.textAlign = "left";
+      ctx.fillText(sideEl.textContent || "--", col2X, y);
+      ctx.fillText(offsetEl.textContent || "--.- ft", col3X, y);
+
+      y += 92;
+
+      const bottomCol1X = innerX + innerW * 0.18;
+      const bottomCol2X = innerX + innerW * 0.68;
+
+      ctx.fillStyle = "#1BB69F";
+      ctx.font = "400 21px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("GPS Accuracy", bottomCol1X, y);
+      ctx.fillText("Smoothing Points", bottomCol2X, y);
+
+      y += 42;
+
+      ctx.fillStyle = "#B8E8E1";
+      ctx.font = "400 31px Arial";
+      ctx.fillText(accuracyEl.textContent || "--", bottomCol1X, y);
+      ctx.fillText(smoothingCountEl.textContent || "--", bottomCol2X, y);
+
+      y += 34;
+
+      const noteBoxY = y;
+      const noteBoxH = 230;
+      fillRoundRect(ctx, innerX, noteBoxY, innerW, noteBoxH, 18, "#E8F8F5");
+
+      ctx.fillStyle = "#4e5b60";
+      ctx.font = "400 25px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+
+      const noteText = noteInputEl.value && noteInputEl.value.trim()
+        ? noteInputEl.value
+        : "Add note";
+
+      ctx.fillStyle = noteInputEl.value && noteInputEl.value.trim() ? "#4e5b60" : "#9d9d9d";
+      drawWrappedText(ctx, noteText, innerX + 20, noteBoxY + 18, innerW - 40, 34, 5);
+
+      y = noteBoxY + noteBoxH + 34;
+
+      const camSize = 68;
+      const camX = cardX + cardW / 2 - camSize / 2;
+      strokeRoundRect(ctx, camX, y, camSize, camSize, 18, "#16927F", 4);
+      ctx.fillStyle = "#16927F";
+      ctx.font = "700 22px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("CAM", camX + camSize / 2, y + camSize / 2 + 1);
+
+      y += 104;
+
+      fillRoundRect(ctx, innerX, y, innerW, 74, 20, "#252525");
+      ctx.fillStyle = statusEl.classList.contains("bad") ? "#ff8e8e" : "#1BB69F";
+      ctx.font = "400 23px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+
+      const statusText = statusEl.textContent || "";
+      drawWrappedText(ctx, statusText, innerX + 18, y + 18, innerW - 36, 28, 2);
+
+      return canvas;
     }
 
     async function captureCard() {
@@ -1017,17 +1134,21 @@
         captureBtnEl.disabled = true;
         setStatus("Capturing card...", true);
 
-        const html2canvas = await loadHtml2CanvasIfNeeded();
-        const dataUrl = await renderCaptureFromClone(html2canvas);
+        const canvas = renderCaptureCanvas();
+        const dataUrl = canvas.toDataURL("image/png");
+
+        if (!dataUrl || dataUrl === "data:,") {
+          throw new Error("Could not generate image data.");
+        }
+
+        openCaptureOverlay(dataUrl);
 
         if (IS_IOS) {
-          openCaptureOverlay(dataUrl);
           setStatus("Capture ready. Press and hold the preview image to save it.", true);
           return;
         }
 
-        dataUrlToDownload(dataUrl, "stationing-card.png");
-        openCaptureOverlay(dataUrl);
+        triggerDownloadFromDataUrl(dataUrl, "stationing-card.png");
         setStatus("Card captured.", true);
       } catch (err) {
         setStatus(`Capture failed: ${err.message}`, false);
@@ -1045,6 +1166,7 @@
           setStatus("Could not open image preview window.", false);
           return;
         }
+
         win.document.open();
         win.document.write(`<!DOCTYPE html>
 <html>
@@ -1079,7 +1201,7 @@
         return;
       }
 
-      dataUrlToDownload(latestCaptureDataUrl, "stationing-card.png");
+      triggerDownloadFromDataUrl(latestCaptureDataUrl, "stationing-card.png");
     }
 
     function buildProjectDropdown() {
