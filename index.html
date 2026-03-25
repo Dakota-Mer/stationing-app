@@ -1,524 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stationing</title>
-  <meta name="theme-color" content="#111111" />
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 16px;
-      box-sizing: border-box;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stationing</title>
 
-    .card {
-      width: 100%;
-      max-width: 420px;
-      background: #1b1b1b;
-      border-radius: 16px;
-      padding: 20px;
-      box-sizing: border-box;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-    }
+<style>
+body {
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
 
-    h1 {
-      margin: 0 0 18px 0;
-      font-size: 24px;
-      text-align: center;
-    }
+.card {
+  width:100%;
+  max-width:420px;
+  background:#1b1b1b;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+}
 
-    .row {
-      margin-bottom: 14px;
-    }
+.header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
 
-    .label {
-      font-size: 13px;
-      color: #bdbdbd;
-      margin-bottom: 4px;
-    }
+h1 {
+  font-size:22px;
+  margin:0;
+}
 
-    .value {
-      font-size: 28px;
-      font-weight: bold;
-      line-height: 1.2;
-      word-break: break-word;
-    }
+.mode-btn {
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+  background:#2a2a2a;
+  color:#fff;
+}
 
-    .small {
-      font-size: 16px;
-      font-weight: normal;
-    }
+.mode-btn.active {
+  background:#4caf50;
+}
 
-    .status {
-      margin-top: 18px;
-      padding: 10px 12px;
-      background: #2a2a2a;
-      border-radius: 10px;
-      font-size: 14px;
-      color: #d7d7d7;
-    }
+.row { margin-bottom:14px; }
+.label { font-size:13px; color:#bdbdbd; }
+.value { font-size:28px; font-weight:bold; }
+.small { font-size:16px; }
 
-    .good { color: #7CFC98; }
-    .bad { color: #ff8e8e; }
+.status {
+  margin-top:18px;
+  padding:10px;
+  background:#2a2a2a;
+  border-radius:10px;
+  font-size:14px;
+}
 
-    select {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #444;
-      background: #2a2a2a;
-      color: #fff;
-      box-sizing: border-box;
-    }
-  </style>
+.good { color:#7CFC98; }
+.bad { color:#ff8e8e; }
+
+select {
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  background:#2a2a2a;
+  color:#fff;
+}
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>Stationing App</h1>
+<div class="card">
 
-    <div class="row">
-      <div class="label">Project</div>
-      <select id="projectSelect"></select>
-    </div>
+<div class="header">
+  <button id="fastBtn" class="mode-btn">🐇</button>
+  <h1>Stationing</h1>
+  <button id="slowBtn" class="mode-btn">🐌</button>
+</div>
 
-    <div class="row">
-      <div class="label">Station</div>
-      <div id="station" class="value">--+--</div>
-    </div>
+<div class="row">
+  <div class="label">Project</div>
+  <select id="projectSelect"></select>
+</div>
 
-    <div class="row">
-      <div class="label">Offset</div>
-      <div id="offset" class="value">--.- ft</div>
-    </div>
+<div class="row">
+  <div class="label">Station</div>
+  <div id="station" class="value">--+--</div>
+</div>
 
-    <div class="row">
-      <div class="label">Side</div>
-      <div id="side" class="value small">--</div>
-    </div>
+<div class="row">
+  <div class="label">Offset</div>
+  <div id="offset" class="value">--.- ft</div>
+</div>
 
-    <div class="row">
-      <div class="label">Start Station</div>
-      <div id="startStationDisplay" class="value small">--+--</div>
-    </div>
+<div class="row">
+  <div class="label">Side</div>
+  <div id="side" class="value small">--</div>
+</div>
 
-    <div class="row">
-      <div class="label">GPS Accuracy</div>
-      <div id="accuracy" class="value small">--</div>
-    </div>
+<div class="row">
+  <div class="label">Start Station</div>
+  <div id="startStationDisplay" class="value small">--</div>
+</div>
 
-    <div class="row">
-      <div class="label">GPS Points Used In Average</div>
-      <div id="pointCount" class="value small">0</div>
-    </div>
+<div class="row">
+  <div class="label">GPS Accuracy</div>
+  <div id="accuracy" class="value small">--</div>
+</div>
 
-    <div id="status" class="status">Loading app...</div>
-  </div>
+<div id="status" class="status">Loading...</div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
-  <script>
-    // =========================
-    // PROJECT LIST
-    // =========================
-    const PROJECTS = [
-      {
-        name: "Project 1",
-        file: "project1.geojson",
-        startStationFeet: 200
-      },
-      {
-        name: "sidewalk",
-        file: "sidewalk.geojson",
-        startStationFeet: 0
-      },
-      {
-        name: "FM 3325",
-        file: "3616-01-020.geojson",
-        startStationFeet: 0
-      }
-    ];
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+<script>
 
-    // =========================
-    // SETTINGS
-    // =========================
-    const MAX_GPS_ACCURACY_METERS = 10;
+// ================= PROJECTS =================
+const PROJECTS = :contentReference[oaicite:0]{index=0}.split("const PROJECTS = ")[1].split("];")[0] + "]";
 
-    // Number of recent good GPS points to keep
-    // 5 is a good starting value
-    const SMOOTHING_POINT_COUNT = 3;
+// ================= MODES =================
+const MODES = {
+  fast: {
+    smoothing: 3,
+    maxAccuracy: 15,
+    maxJump: 120,
+    maxSpeed: 120,
+    maxStationJump: 150,
+    maxOffsetSpike: 30
+  },
+  slow: {
+    smoothing: 7,
+    maxAccuracy: 10,
+    maxJump: 50,
+    maxSpeed: 35,
+    maxStationJump: 60,
+    maxOffsetSpike: 15
+  }
+};
 
-    const FEET_PER_METER = 3.28084;
+let mode = localStorage.getItem("mode") || "slow";
 
-    // =========================
-    // APP STATE
-    // =========================
-    let currentProjectIndex = 0;
-    let centerline = null;
-    let watchId = null;
-    let recentGpsPoints = [];
+// ================= STATE =================
+let centerline = null;
+let currentProjectIndex = Number(localStorage.getItem("project")) || 0;
+let watchId = null;
 
-    // =========================
-    // UI HELPERS
-    // =========================
-    function setStatus(message, isGood = true) {
-      const el = document.getElementById("status");
-      el.innerHTML = isGood
-        ? `<span class="good">${message}</span>`
-        : `<span class="bad">${message}</span>`;
+let rawHistory = [];
+let lastRaw = null;
+let lastSnap = null;
+
+// ================= UI =================
+function setMode(newMode){
+  mode = newMode;
+  localStorage.setItem("mode", mode);
+  document.getElementById("fastBtn").classList.toggle("active", mode==="fast");
+  document.getElementById("slowBtn").classList.toggle("active", mode==="slow");
+}
+
+document.getElementById("fastBtn").onclick = ()=>setMode("fast");
+document.getElementById("slowBtn").onclick = ()=>setMode("slow");
+
+function formatStation(feet){
+  let r=Math.round(feet);
+  return `${Math.floor(r/100)}+${(r%100).toString().padStart(2,"0")}`;
+}
+
+function setStatus(msg,good=true){
+  document.getElementById("status").innerHTML=
+    good?`<span class="good">${msg}</span>`:`<span class="bad">${msg}</span>`;
+}
+
+// ================= LOAD =================
+async function loadCenterline(){
+  let p=PROJECTS[currentProjectIndex];
+  let res=await fetch(p.file);
+  let data=await res.json();
+
+  centerline = data.type==="FeatureCollection"
+    ? data.features.find(f=>f.geometry.type.includes("Line"))
+    : data;
+}
+
+// ================= GPS =================
+function updatePosition(pos){
+
+  let cfg = MODES[mode];
+
+  let lat=pos.coords.latitude;
+  let lon=pos.coords.longitude;
+  let acc=pos.coords.accuracy;
+  let t=Date.now();
+
+  let accFt = acc * 3.28084;
+  document.getElementById("accuracy").textContent = `${accFt.toFixed(1)} ft`;
+
+  if(acc > cfg.maxAccuracy) return;
+
+  let pt = turf.point([lon,lat]);
+
+  // ===== RAW REJECTION =====
+  if(lastRaw){
+    let dist = turf.distance(lastRaw.point, pt, {units:"feet"});
+    let dt = (t - lastRaw.time)/1000;
+    let speed = dist / dt;
+
+    if(dist > cfg.maxJump || speed > cfg.maxSpeed){
+      return;
     }
+  }
 
-    function formatStation(feet) {
-      const rounded = Math.round(feet);
-      const staHundreds = Math.floor(rounded / 100);
-      const staRemainder = rounded % 100;
-      return `${staHundreds}+${staRemainder.toString().padStart(2, "0")}`;
-    }
-
-    function metersToFeet(meters) {
-      return meters * FEET_PER_METER;
-    }
-
-    function getCurrentProject() {
-      return PROJECTS[currentProjectIndex];
-    }
-
-    function updateProjectInfoDisplay() {
-      const project = getCurrentProject();
-      document.getElementById("startStationDisplay").textContent = formatStation(project.startStationFeet);
-    }
-
-    function resetDisplayedValues() {
-      document.getElementById("station").textContent = "--+--";
-      document.getElementById("offset").textContent = "--.- ft";
-      document.getElementById("side").textContent = "--";
-      document.getElementById("pointCount").textContent = "0";
-    }
-
-    // =========================
-    // GPS SMOOTHING
-    // =========================
-    function clearGpsSmoothing() {
-      recentGpsPoints = [];
-      document.getElementById("pointCount").textContent = "0";
-    }
-
-    function addGpsPoint(lat, lon, accuracy) {
-      recentGpsPoints.push({
-        lat: lat,
-        lon: lon,
-        accuracy: accuracy
-      });
-
-      if (recentGpsPoints.length > SMOOTHING_POINT_COUNT) {
-        recentGpsPoints.shift();
-      }
-
-      document.getElementById("pointCount").textContent = String(recentGpsPoints.length);
-    }
-
-    function getAccuracyWeight(accuracyMeters) {
-      // Smaller accuracy number = better reading = bigger weight
-      // Clamp to avoid divide-by-zero or absurd weights
-      const safeAccuracy = Math.max(accuracyMeters, 1);
-      return 1 / safeAccuracy;
-    }
-
-    function getWeightedAverageGpsPoint() {
-      if (recentGpsPoints.length === 0) {
-        return null;
-      }
-
-      let weightedLatSum = 0;
-      let weightedLonSum = 0;
-      let totalWeight = 0;
-      let rawAccuracySum = 0;
-
-      for (const point of recentGpsPoints) {
-        const weight = getAccuracyWeight(point.accuracy);
-
-        weightedLatSum += point.lat * weight;
-        weightedLonSum += point.lon * weight;
-        totalWeight += weight;
-        rawAccuracySum += point.accuracy;
-      }
-
-      if (totalWeight === 0) {
-        return null;
-      }
-
-      return {
-        lat: weightedLatSum / totalWeight,
-        lon: weightedLonSum / totalWeight,
-        averageRawAccuracy: rawAccuracySum / recentGpsPoints.length,
-        count: recentGpsPoints.length
-      };
-    }
-
-    // =========================
-    // GEOMETRY HELPERS
-    // =========================
-    function getSegmentForSnap(lineCoords, snappedIndex) {
-      if (lineCoords.length < 2) return null;
-
-      if (snappedIndex >= 0 && snappedIndex < lineCoords.length - 1) {
-        return [lineCoords[snappedIndex], lineCoords[snappedIndex + 1]];
-      }
-
-      if (snappedIndex >= lineCoords.length - 1) {
-        return [lineCoords[lineCoords.length - 2], lineCoords[lineCoords.length - 1]];
-      }
-
-      return [lineCoords[0], lineCoords[1]];
-    }
-
-    function getSideOfSegment(segmentStart, segmentEnd, pointCoord) {
-      const avgLat = ((segmentStart[1] + segmentEnd[1] + pointCoord[1]) / 3) * Math.PI / 180;
-      const cosLat = Math.cos(avgLat);
-
-      const ax = segmentStart[0] * cosLat;
-      const ay = segmentStart[1];
-      const bx = segmentEnd[0] * cosLat;
-      const by = segmentEnd[1];
-      const px = pointCoord[0] * cosLat;
-      const py = pointCoord[1];
-
-      const abx = bx - ax;
-      const aby = by - ay;
-      const apx = px - ax;
-      const apy = py - ay;
-
-      const cross = (abx * apy) - (aby * apx);
-
-      if (Math.abs(cross) < 1e-12) return "On Line";
-
-      return cross > 0 ? "Left" : "Right";
-    }
-
-    // =========================
-    // LOAD CENTERLINE
-    // =========================
-    async function loadCenterlineForCurrentProject() {
-      const project = getCurrentProject();
-
-      setStatus(`Loading ${project.name}...`, true);
-      resetDisplayedValues();
-      updateProjectInfoDisplay();
-
-      const response = await fetch(project.file);
-
-      if (!response.ok) {
-        throw new Error(`Could not load ${project.file}`);
-      }
-
-      const data = await response.json();
-
-      if (data.type === "FeatureCollection") {
-        const lineFeature = data.features.find(f =>
-          f.geometry &&
-          (f.geometry.type === "LineString" || f.geometry.type === "MultiLineString")
-        );
-
-        if (!lineFeature) {
-          throw new Error(`No LineString or MultiLineString found in ${project.file}`);
-        }
-
-        centerline = lineFeature;
-        return;
-      }
-
-      if (
-        data.type === "Feature" &&
-        data.geometry &&
-        (data.geometry.type === "LineString" || data.geometry.type === "MultiLineString")
-      ) {
-        centerline = data;
-        return;
-      }
-
-      throw new Error(`${project.file} must contain a LineString or MultiLineString`);
-    }
-
-    // =========================
-    // STATION CALCULATION
-    // =========================
-    function calculateStationFromSmoothedPoint(smoothedPoint) {
-      if (!centerline) {
-        setStatus("Centerline not loaded yet.", false);
-        return;
-      }
-
-      try {
-        const project = getCurrentProject();
-        const gpsPoint = turf.point([smoothedPoint.lon, smoothedPoint.lat]);
-
-        const snapped = turf.nearestPointOnLine(centerline, gpsPoint, { units: "kilometers" });
-
-        const stationAlongLineFeet = turf.convertLength(
-          snapped.properties.location,
-          "kilometers",
-          "feet"
-        );
-
-        const displayedStationFeet = project.startStationFeet + stationAlongLineFeet;
-
-        const offsetFeet = turf.convertLength(
-          snapped.properties.dist,
-          "kilometers",
-          "feet"
-        );
-
-        let sideText = "Unknown";
-
-        if (centerline.geometry.type === "LineString") {
-          const lineCoords = centerline.geometry.coordinates;
-          const snappedIndex = snapped.properties.index ?? 0;
-          const segment = getSegmentForSnap(lineCoords, snappedIndex);
-
-          if (segment) {
-            sideText = getSideOfSegment(segment[0], segment[1], [smoothedPoint.lon, smoothedPoint.lat]);
-          }
-        } else if (centerline.geometry.type === "MultiLineString") {
-          const multiIndex = snapped.properties.multiFeatureIndex ?? 0;
-          const lineCoords = centerline.geometry.coordinates[multiIndex];
-          const snappedIndex = snapped.properties.index ?? 0;
-          const segment = getSegmentForSnap(lineCoords, snappedIndex);
-
-          if (segment) {
-            sideText = getSideOfSegment(segment[0], segment[1], [smoothedPoint.lon, smoothedPoint.lat]);
-          }
-        }
-
-        document.getElementById("station").textContent = formatStation(displayedStationFeet);
-        document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
-        document.getElementById("side").textContent = sideText;
-
-        setStatus(
-          `GPS locked on ${project.name}. Using ${smoothedPoint.count} point(s) in weighted average.`,
-          true
-        );
-      } catch (err) {
-        setStatus(`Geometry error: ${err.message}`, false);
-      }
-    }
-
-    // =========================
-    // GPS
-    // =========================
-    function updatePosition(position) {
-      const rawLat = position.coords.latitude;
-      const rawLon = position.coords.longitude;
-      const rawAccuracyMeters = position.coords.accuracy;
-      const rawAccuracyFeet = metersToFeet(rawAccuracyMeters);
-
-      document.getElementById("accuracy").textContent = `${rawAccuracyFeet.toFixed(1)} ft`;
-
-      if (rawAccuracyMeters > MAX_GPS_ACCURACY_METERS) {
-        setStatus(`Waiting for better GPS accuracy. Current: ${rawAccuracyFeet.toFixed(1)} ft`, false);
-        return;
-      }
-
-      if (!centerline) {
-        setStatus("Centerline not loaded yet.", false);
-        return;
-      }
-
-      addGpsPoint(rawLat, rawLon, rawAccuracyMeters);
-
-      const smoothedPoint = getWeightedAverageGpsPoint();
-
-      if (!smoothedPoint) {
-        setStatus("Waiting for GPS points...", false);
-        return;
-      }
-
-      calculateStationFromSmoothedPoint(smoothedPoint);
-    }
-
-    function handleGpsError(error) {
-      setStatus(`GPS error: ${error.message}`, false);
-    }
-
-    function startGpsWatch() {
-      if (!navigator.geolocation) {
-        setStatus("Geolocation is not supported on this device/browser.", false);
-        return;
-      }
-
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-
-      watchId = navigator.geolocation.watchPosition(updatePosition, handleGpsError, {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 10000
-      });
-    }
-
-    // =========================
-    // PROJECT DROPDOWN
-    // =========================
-    function buildProjectDropdown() {
-      const select = document.getElementById("projectSelect");
-      select.innerHTML = "";
-
-      PROJECTS.forEach((project, index) => {
-        const option = document.createElement("option");
-        option.value = index;
-        option.textContent = project.name;
-        select.appendChild(option);
-      });
-
-      select.value = currentProjectIndex;
-
-      select.addEventListener("change", async function () {
-        currentProjectIndex = Number(this.value);
-
-        try {
-          centerline = null;
-          clearGpsSmoothing();
-          resetDisplayedValues();
-          updateProjectInfoDisplay();
-          await loadCenterlineForCurrentProject();
-          setStatus(`Loaded ${getCurrentProject().name}. Waiting for GPS update...`, true);
-        } catch (err) {
-          centerline = null;
-          clearGpsSmoothing();
-          resetDisplayedValues();
-          setStatus(err.message, false);
-        }
-      });
-    }
-
-    // =========================
-    // APP START
-    // =========================
-    async function startApp() {
-      try {
-        if (!Array.isArray(PROJECTS) || PROJECTS.length === 0) {
-          throw new Error("No projects configured in the PROJECTS list.");
-        }
-
-        buildProjectDropdown();
-        updateProjectInfoDisplay();
-        clearGpsSmoothing();
-        await loadCenterlineForCurrentProject();
-        startGpsWatch();
-        setStatus("App ready. Waiting for GPS...", true);
-      } catch (err) {
-        setStatus(err.message, false);
-      }
-    }
-
-    startApp();
-  </script>
+  lastRaw = {point:pt,time:t};
+
+  rawHistory.push({point:pt,acc});
+  if(rawHistory.length > cfg.smoothing) rawHistory.shift();
+
+  // ===== SMOOTH =====
+  let sumLat=0,sumLon=0,sumW=0;
+  rawHistory.forEach(p=>{
+    let w = 1/(p.acc||1);
+    sumLat += p.point.geometry.coordinates[1]*w;
+    sumLon += p.point.geometry.coordinates[0]*w;
+    sumW += w;
+  });
+
+  let smooth = turf.point([sumLon/sumW,sumLat/sumW]);
+
+  // ===== SNAP =====
+  let snap = turf.nearestPointOnLine(centerline, smooth,{units:"kilometers"});
+
+  let station = turf.convertLength(snap.properties.location,"kilometers","feet")
+    + PROJECTS[currentProjectIndex].startStationFeet;
+
+  let offset = turf.convertLength(snap.properties.dist,"kilometers","feet");
+
+  // ===== SNAP REJECTION =====
+  if(lastSnap){
+    if(Math.abs(station-lastSnap.station) > cfg.maxStationJump) return;
+    if(Math.abs(offset-lastSnap.offset) > cfg.maxOffsetSpike) return;
+  }
+
+  lastSnap = {station,offset};
+
+  document.getElementById("station").textContent = formatStation(station);
+  document.getElementById("offset").textContent = offset.toFixed(1)+" ft";
+
+  setStatus("GPS locked",true);
+}
+
+// ================= START =================
+async function start(){
+
+  setMode(mode);
+
+  let select=document.getElementById("projectSelect");
+  PROJECTS.forEach((p,i)=>{
+    let o=document.createElement("option");
+    o.value=i;o.textContent=p.name;
+    select.appendChild(o);
+  });
+
+  select.value=currentProjectIndex;
+
+  select.onchange=async function(){
+    currentProjectIndex=Number(this.value);
+    localStorage.setItem("project",currentProjectIndex);
+    await loadCenterline();
+  };
+
+  await loadCenterline();
+
+  navigator.geolocation.watchPosition(updatePosition,console.error,{
+    enableHighAccuracy:true
+  });
+}
+
+start();
+
+</script>
 </body>
 </html>
