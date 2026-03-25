@@ -111,18 +111,13 @@
     </div>
 
     <div class="row">
-      <div class="label">GeoJSON File</div>
-      <div id="geojsonFileDisplay" class="value small">--</div>
-    </div>
-
-    <div class="row">
       <div class="label">GPS Accuracy</div>
       <div id="accuracy" class="value small">--</div>
     </div>
 
     <div class="row">
-      <div class="label">Coordinates</div>
-      <div id="coords" class="value small">--</div>
+      <div class="label">GPS Points Used In Average</div>
+      <div id="pointCount" class="value small">0</div>
     </div>
 
     <div id="status" class="status">Loading app...</div>
@@ -133,14 +128,6 @@
     // =========================
     // PROJECT LIST
     // =========================
-    // Add one object here for each project.
-    // startStationFeet is the starting station written as total feet.
-    //
-    // Examples:
-    // 0+00     = 0
-    // 12+50    = 1250
-    // 1663+00  = 166300
-    // 1663+45  = 166345
     const PROJECTS = [
       {
         name: "Project 1",
@@ -157,12 +144,6 @@
         file: "3616-01-020.geojson",
         startStationFeet: 0
       }
-      // Add more projects like this:
-      // {
-      //   name: "US 180 Westbound",
-      //   file: "us180_wb.geojson",
-      //   startStationFeet: 245600
-      // }
     ];
 
     // =========================
@@ -170,12 +151,19 @@
     // =========================
     const MAX_GPS_ACCURACY_METERS = 10;
 
+    // Number of recent good GPS points to keep
+    // 5 is a good starting value
+    const SMOOTHING_POINT_COUNT = 3;
+
+    const FEET_PER_METER = 3.28084;
+
     // =========================
     // APP STATE
     // =========================
     let currentProjectIndex = 0;
     let centerline = null;
     let watchId = null;
+    let recentGpsPoints = [];
 
     // =========================
     // UI HELPERS
@@ -194,6 +182,10 @@
       return `${staHundreds}+${staRemainder.toString().padStart(2, "0")}`;
     }
 
+    function metersToFeet(meters) {
+      return meters * FEET_PER_METER;
+    }
+
     function getCurrentProject() {
       return PROJECTS[currentProjectIndex];
     }
@@ -201,13 +193,73 @@
     function updateProjectInfoDisplay() {
       const project = getCurrentProject();
       document.getElementById("startStationDisplay").textContent = formatStation(project.startStationFeet);
-      document.getElementById("geojsonFileDisplay").textContent = project.file;
     }
 
     function resetDisplayedValues() {
       document.getElementById("station").textContent = "--+--";
       document.getElementById("offset").textContent = "--.- ft";
       document.getElementById("side").textContent = "--";
+      document.getElementById("pointCount").textContent = "0";
+    }
+
+    // =========================
+    // GPS SMOOTHING
+    // =========================
+    function clearGpsSmoothing() {
+      recentGpsPoints = [];
+      document.getElementById("pointCount").textContent = "0";
+    }
+
+    function addGpsPoint(lat, lon, accuracy) {
+      recentGpsPoints.push({
+        lat: lat,
+        lon: lon,
+        accuracy: accuracy
+      });
+
+      if (recentGpsPoints.length > SMOOTHING_POINT_COUNT) {
+        recentGpsPoints.shift();
+      }
+
+      document.getElementById("pointCount").textContent = String(recentGpsPoints.length);
+    }
+
+    function getAccuracyWeight(accuracyMeters) {
+      // Smaller accuracy number = better reading = bigger weight
+      // Clamp to avoid divide-by-zero or absurd weights
+      const safeAccuracy = Math.max(accuracyMeters, 1);
+      return 1 / safeAccuracy;
+    }
+
+    function getWeightedAverageGpsPoint() {
+      if (recentGpsPoints.length === 0) {
+        return null;
+      }
+
+      let weightedLatSum = 0;
+      let weightedLonSum = 0;
+      let totalWeight = 0;
+      let rawAccuracySum = 0;
+
+      for (const point of recentGpsPoints) {
+        const weight = getAccuracyWeight(point.accuracy);
+
+        weightedLatSum += point.lat * weight;
+        weightedLonSum += point.lon * weight;
+        totalWeight += weight;
+        rawAccuracySum += point.accuracy;
+      }
+
+      if (totalWeight === 0) {
+        return null;
+      }
+
+      return {
+        lat: weightedLatSum / totalWeight,
+        lon: weightedLonSum / totalWeight,
+        averageRawAccuracy: rawAccuracySum / recentGpsPoints.length,
+        count: recentGpsPoints.length
+      };
     }
 
     // =========================
@@ -295,21 +347,9 @@
     }
 
     // =========================
-    // GPS
+    // STATION CALCULATION
     // =========================
-    function updatePosition(position) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      const accuracy = position.coords.accuracy;
-
-      document.getElementById("accuracy").textContent = `${accuracy.toFixed(1)} m`;
-      document.getElementById("coords").textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-
-      if (accuracy > MAX_GPS_ACCURACY_METERS) {
-        setStatus(`Waiting for better GPS accuracy. Current: ${accuracy.toFixed(1)} m`, false);
-        return;
-      }
-
+    function calculateStationFromSmoothedPoint(smoothedPoint) {
       if (!centerline) {
         setStatus("Centerline not loaded yet.", false);
         return;
@@ -317,7 +357,7 @@
 
       try {
         const project = getCurrentProject();
-        const gpsPoint = turf.point([lon, lat]);
+        const gpsPoint = turf.point([smoothedPoint.lon, smoothedPoint.lat]);
 
         const snapped = turf.nearestPointOnLine(centerline, gpsPoint, { units: "kilometers" });
 
@@ -343,7 +383,7 @@
           const segment = getSegmentForSnap(lineCoords, snappedIndex);
 
           if (segment) {
-            sideText = getSideOfSegment(segment[0], segment[1], [lon, lat]);
+            sideText = getSideOfSegment(segment[0], segment[1], [smoothedPoint.lon, smoothedPoint.lat]);
           }
         } else if (centerline.geometry.type === "MultiLineString") {
           const multiIndex = snapped.properties.multiFeatureIndex ?? 0;
@@ -352,7 +392,7 @@
           const segment = getSegmentForSnap(lineCoords, snappedIndex);
 
           if (segment) {
-            sideText = getSideOfSegment(segment[0], segment[1], [lon, lat]);
+            sideText = getSideOfSegment(segment[0], segment[1], [smoothedPoint.lon, smoothedPoint.lat]);
           }
         }
 
@@ -360,10 +400,46 @@
         document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
         document.getElementById("side").textContent = sideText;
 
-        setStatus(`GPS locked on ${project.name}.`, true);
+        setStatus(
+          `GPS locked on ${project.name}. Using ${smoothedPoint.count} point(s) in weighted average.`,
+          true
+        );
       } catch (err) {
         setStatus(`Geometry error: ${err.message}`, false);
       }
+    }
+
+    // =========================
+    // GPS
+    // =========================
+    function updatePosition(position) {
+      const rawLat = position.coords.latitude;
+      const rawLon = position.coords.longitude;
+      const rawAccuracyMeters = position.coords.accuracy;
+      const rawAccuracyFeet = metersToFeet(rawAccuracyMeters);
+
+      document.getElementById("accuracy").textContent = `${rawAccuracyFeet.toFixed(1)} ft`;
+
+      if (rawAccuracyMeters > MAX_GPS_ACCURACY_METERS) {
+        setStatus(`Waiting for better GPS accuracy. Current: ${rawAccuracyFeet.toFixed(1)} ft`, false);
+        return;
+      }
+
+      if (!centerline) {
+        setStatus("Centerline not loaded yet.", false);
+        return;
+      }
+
+      addGpsPoint(rawLat, rawLon, rawAccuracyMeters);
+
+      const smoothedPoint = getWeightedAverageGpsPoint();
+
+      if (!smoothedPoint) {
+        setStatus("Waiting for GPS points...", false);
+        return;
+      }
+
+      calculateStationFromSmoothedPoint(smoothedPoint);
     }
 
     function handleGpsError(error) {
@@ -408,12 +484,14 @@
 
         try {
           centerline = null;
+          clearGpsSmoothing();
           resetDisplayedValues();
           updateProjectInfoDisplay();
           await loadCenterlineForCurrentProject();
           setStatus(`Loaded ${getCurrentProject().name}. Waiting for GPS update...`, true);
         } catch (err) {
           centerline = null;
+          clearGpsSmoothing();
           resetDisplayedValues();
           setStatus(err.message, false);
         }
@@ -431,6 +509,7 @@
 
         buildProjectDropdown();
         updateProjectInfoDisplay();
+        clearGpsSmoothing();
         await loadCenterlineForCurrentProject();
         startGpsWatch();
         setStatus("App ready. Waiting for GPS...", true);
