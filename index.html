@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stationing App</title>
+  <title>Stationing</title>
   <meta name="theme-color" content="#111111" />
   <style>
     body {
@@ -68,11 +68,27 @@
 
     .good { color: #7CFC98; }
     .bad { color: #ff8e8e; }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: #fff;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Stationing App</h1>
+
+    <div class="row">
+      <div class="label">Project</div>
+      <select id="projectSelect"></select>
+    </div>
 
     <div class="row">
       <div class="label">Station</div>
@@ -95,6 +111,11 @@
     </div>
 
     <div class="row">
+      <div class="label">GeoJSON File</div>
+      <div id="geojsonFileDisplay" class="value small">--</div>
+    </div>
+
+    <div class="row">
       <div class="label">GPS Accuracy</div>
       <div id="accuracy" class="value small">--</div>
     </div>
@@ -104,29 +125,52 @@
       <div id="coords" class="value small">--</div>
     </div>
 
-    <div id="status" class="status">Loading centerline...</div>
+    <div id="status" class="status">Loading app...</div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
   <script>
     // =========================
-    // SETTINGS
+    // PROJECT LIST
     // =========================
-    const GEOJSON_FILE = "project1.geojson";
-    const MAX_GPS_ACCURACY_METERS = 10;
-
-    // CHANGE THIS TO YOUR PROJECT START STATION
-    // Example:
+    // Add one object here for each project.
+    // startStationFeet is the starting station written as total feet.
+    //
+    // Examples:
     // 0+00     = 0
-    // 10+00    = 1000
+    // 12+50    = 1250
     // 1663+00  = 166300
     // 1663+45  = 166345
-    const START_STATION_FEET = 80065;
+    const PROJECTS = [
+      {
+        name: "Project 1",
+        file: "project1.geojson",
+        startStationFeet: 200
+      },
+      {
+        name: "FM 3325",
+        file: "3616-01-020.geojson",
+        startStationFeet: 0
+      }
+      // Add more projects like this:
+      // {
+      //   name: "US 180 Westbound",
+      //   file: "us180_wb.geojson",
+      //   startStationFeet: 245600
+      // }
+    ];
+
+    // =========================
+    // SETTINGS
+    // =========================
+    const MAX_GPS_ACCURACY_METERS = 10;
 
     // =========================
     // APP STATE
     // =========================
+    let currentProjectIndex = 0;
     let centerline = null;
+    let watchId = null;
 
     // =========================
     // UI HELPERS
@@ -143,6 +187,22 @@
       const staHundreds = Math.floor(rounded / 100);
       const staRemainder = rounded % 100;
       return `${staHundreds}+${staRemainder.toString().padStart(2, "0")}`;
+    }
+
+    function getCurrentProject() {
+      return PROJECTS[currentProjectIndex];
+    }
+
+    function updateProjectInfoDisplay() {
+      const project = getCurrentProject();
+      document.getElementById("startStationDisplay").textContent = formatStation(project.startStationFeet);
+      document.getElementById("geojsonFileDisplay").textContent = project.file;
+    }
+
+    function resetDisplayedValues() {
+      document.getElementById("station").textContent = "--+--";
+      document.getElementById("offset").textContent = "--.- ft";
+      document.getElementById("side").textContent = "--";
     }
 
     // =========================
@@ -182,13 +242,23 @@
 
       if (Math.abs(cross) < 1e-12) return "On Line";
 
-      return cross > 0 ? "LT" : "RT";
+      return cross > 0 ? "Left" : "Right";
     }
 
-    async function loadCenterline() {
-      const response = await fetch(GEOJSON_FILE);
+    // =========================
+    // LOAD CENTERLINE
+    // =========================
+    async function loadCenterlineForCurrentProject() {
+      const project = getCurrentProject();
+
+      setStatus(`Loading ${project.name}...`, true);
+      resetDisplayedValues();
+      updateProjectInfoDisplay();
+
+      const response = await fetch(project.file);
+
       if (!response.ok) {
-        throw new Error(`Could not load ${GEOJSON_FILE}`);
+        throw new Error(`Could not load ${project.file}`);
       }
 
       const data = await response.json();
@@ -200,10 +270,11 @@
         );
 
         if (!lineFeature) {
-          throw new Error("No LineString or MultiLineString found in GeoJSON.");
+          throw new Error(`No LineString or MultiLineString found in ${project.file}`);
         }
 
-        return lineFeature;
+        centerline = lineFeature;
+        return;
       }
 
       if (
@@ -211,12 +282,16 @@
         data.geometry &&
         (data.geometry.type === "LineString" || data.geometry.type === "MultiLineString")
       ) {
-        return data;
+        centerline = data;
+        return;
       }
 
-      throw new Error("GeoJSON must contain a LineString or MultiLineString.");
+      throw new Error(`${project.file} must contain a LineString or MultiLineString`);
     }
 
+    // =========================
+    // GPS
+    // =========================
     function updatePosition(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
@@ -224,7 +299,6 @@
 
       document.getElementById("accuracy").textContent = `${accuracy.toFixed(1)} m`;
       document.getElementById("coords").textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-      document.getElementById("startStationDisplay").textContent = formatStation(START_STATION_FEET);
 
       if (accuracy > MAX_GPS_ACCURACY_METERS) {
         setStatus(`Waiting for better GPS accuracy. Current: ${accuracy.toFixed(1)} m`, false);
@@ -237,7 +311,9 @@
       }
 
       try {
+        const project = getCurrentProject();
         const gpsPoint = turf.point([lon, lat]);
+
         const snapped = turf.nearestPointOnLine(centerline, gpsPoint, { units: "kilometers" });
 
         const stationAlongLineFeet = turf.convertLength(
@@ -246,7 +322,7 @@
           "feet"
         );
 
-        const displayedStationFeet = START_STATION_FEET + stationAlongLineFeet;
+        const displayedStationFeet = project.startStationFeet + stationAlongLineFeet;
 
         const offsetFeet = turf.convertLength(
           snapped.properties.dist,
@@ -279,7 +355,7 @@
         document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
         document.getElementById("side").textContent = sideText;
 
-        setStatus("GPS locked and station updated.");
+        setStatus(`GPS locked on ${project.name}.`, true);
       } catch (err) {
         setStatus(`Geometry error: ${err.message}`, false);
       }
@@ -289,22 +365,70 @@
       setStatus(`GPS error: ${error.message}`, false);
     }
 
+    function startGpsWatch() {
+      if (!navigator.geolocation) {
+        setStatus("Geolocation is not supported on this device/browser.", false);
+        return;
+      }
+
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+
+      watchId = navigator.geolocation.watchPosition(updatePosition, handleGpsError, {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000
+      });
+    }
+
+    // =========================
+    // PROJECT DROPDOWN
+    // =========================
+    function buildProjectDropdown() {
+      const select = document.getElementById("projectSelect");
+      select.innerHTML = "";
+
+      PROJECTS.forEach((project, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = project.name;
+        select.appendChild(option);
+      });
+
+      select.value = currentProjectIndex;
+
+      select.addEventListener("change", async function () {
+        currentProjectIndex = Number(this.value);
+
+        try {
+          centerline = null;
+          resetDisplayedValues();
+          updateProjectInfoDisplay();
+          await loadCenterlineForCurrentProject();
+          setStatus(`Loaded ${getCurrentProject().name}. Waiting for GPS update...`, true);
+        } catch (err) {
+          centerline = null;
+          resetDisplayedValues();
+          setStatus(err.message, false);
+        }
+      });
+    }
+
+    // =========================
+    // APP START
+    // =========================
     async function startApp() {
       try {
-        centerline = await loadCenterline();
-        document.getElementById("startStationDisplay").textContent = formatStation(START_STATION_FEET);
-        setStatus("Centerline loaded. Waiting for GPS...");
-
-        if (!navigator.geolocation) {
-          setStatus("Geolocation is not supported on this device/browser.", false);
-          return;
+        if (!Array.isArray(PROJECTS) || PROJECTS.length === 0) {
+          throw new Error("No projects configured in the PROJECTS list.");
         }
 
-        navigator.geolocation.watchPosition(updatePosition, handleGpsError, {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 10000
-        });
+        buildProjectDropdown();
+        updateProjectInfoDisplay();
+        await loadCenterlineForCurrentProject();
+        startGpsWatch();
+        setStatus("App ready. Waiting for GPS...", true);
       } catch (err) {
         setStatus(err.message, false);
       }
