@@ -82,11 +82,11 @@
     }
 
     .iconBtn {
-      width: 46px;
-      height: 46px;
-      min-width: 46px;
-      min-height: 46px;
-      border-radius: 13px;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+      border-radius: 12px;
       border: 2px solid var(--icon-inactive);
       background: transparent;
       display: flex;
@@ -108,8 +108,8 @@
     }
 
     .modeIcon {
-      width: 21px;
-      height: 21px;
+      width: 18px;
+      height: 18px;
       background-color: var(--icon-inactive);
       display: block;
       transition: background-color 0.15s ease;
@@ -306,15 +306,15 @@
       }
 
       .iconBtn {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
       }
 
       .modeIcon {
-        width: 20px;
-        height: 20px;
+        width: 17px;
+        height: 17px;
       }
 
       .bigValue {
@@ -387,33 +387,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
 
   <script>
-    // =========================
-    // PROJECT LIST
-    // =========================
     const PROJECTS = [
-      {
-        name: "Project 1",
-        file: "project1.geojson",
-        startStationFeet: 200
-      },
-      {
-        name: "sidewalk",
-        file: "sidewalk.geojson",
-        startStationFeet: 0
-      },
-      {
-        name: "FM 3325",
-        file: "3616-01-020.geojson",
-        startStationFeet: 0
-      }
+      { name: "Project 1", file: "project1.geojson", startStationFeet: 200 },
+      { name: "sidewalk", file: "sidewalk.geojson", startStationFeet: 0 },
+      { name: "FM 3325", file: "3616-01-020.geojson", startStationFeet: 0 }
     ];
 
-    // =========================
-    // MODE SETTINGS
-    // Rebalanced:
-    // fast = more responsive, looser filters
-    // slow = more stable, tighter filters
-    // =========================
     const MODES = {
       fast: {
         label: "Fast",
@@ -442,9 +421,6 @@
     const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-    // =========================
-    // APP STATE
-    // =========================
     let currentProjectIndex = 0;
     let currentMode = "fast";
     let centerline = null;
@@ -456,9 +432,6 @@
     let lastProcessedTimestamp = 0;
     let html2canvasLoader = null;
 
-    // =========================
-    // DOM CACHE
-    // =========================
     const stationEl = document.getElementById("station");
     const offsetEl = document.getElementById("offset");
     const sideEl = document.getElementById("side");
@@ -471,9 +444,6 @@
     const captureBtnEl = document.getElementById("captureBtn");
     const captureAreaEl = document.getElementById("captureArea");
 
-    // =========================
-    // UI HELPERS
-    // =========================
     function setStatus(message, isGood = true) {
       statusEl.textContent = message;
       statusEl.classList.toggle("good", !!isGood);
@@ -527,7 +497,6 @@
 
     function setMode(modeName) {
       if (!MODES[modeName]) return;
-
       currentMode = modeName;
       localStorage.setItem(MODE_STORAGE_KEY, currentMode);
       resetTrackingBuffers();
@@ -539,9 +508,6 @@
       }
     }
 
-    // =========================
-    // GEOMETRY HELPERS
-    // =========================
     function getSegmentForSnap(lineCoords, snappedIndex) {
       if (lineCoords.length < 2) return null;
 
@@ -585,27 +551,18 @@
         const lineCoords = centerlineFeature.geometry.coordinates;
         const snappedIndex = snapped.properties.index ?? 0;
         const segment = getSegmentForSnap(lineCoords, snappedIndex);
-
-        if (segment) {
-          sideText = getSideOfSegment(segment[0], segment[1], originalCoord);
-        }
+        if (segment) sideText = getSideOfSegment(segment[0], segment[1], originalCoord);
       } else if (centerlineFeature.geometry.type === "MultiLineString") {
         const multiIndex = snapped.properties.multiFeatureIndex ?? 0;
         const lineCoords = centerlineFeature.geometry.coordinates[multiIndex];
         const snappedIndex = snapped.properties.index ?? 0;
         const segment = getSegmentForSnap(lineCoords, snappedIndex);
-
-        if (segment) {
-          sideText = getSideOfSegment(segment[0], segment[1], originalCoord);
-        }
+        if (segment) sideText = getSideOfSegment(segment[0], segment[1], originalCoord);
       }
 
       return sideText;
     }
 
-    // =========================
-    // SMOOTHING
-    // =========================
     function addGpsPointToBuffer(pointData) {
       const modeSettings = getCurrentModeSettings();
       recentGpsPoints.push(pointData);
@@ -637,9 +594,6 @@
       ];
     }
 
-    // =========================
-    // LOAD CENTERLINE
-    // =========================
     async function loadCenterlineForCurrentProject() {
       const project = getCurrentProject();
 
@@ -657,8 +611,7 @@
 
       if (data.type === "FeatureCollection") {
         const lineFeature = data.features.find(f =>
-          f.geometry &&
-          (f.geometry.type === "LineString" || f.geometry.type === "MultiLineString")
+          f.geometry && (f.geometry.type === "LineString" || f.geometry.type === "MultiLineString")
         );
 
         if (!lineFeature) {
@@ -683,9 +636,6 @@
       throw new Error(`${project.file} must contain a LineString or MultiLineString`);
     }
 
-    // =========================
-    // GPS FILTERING
-    // =========================
     function rawPointShouldBeRejected(newPoint) {
       const modeSettings = getCurrentModeSettings();
 
@@ -740,16 +690,11 @@
       return false;
     }
 
-    // =========================
-    // GPS UPDATE
-    // =========================
     function updatePosition(position) {
       const modeSettings = getCurrentModeSettings();
       const now = Date.now();
 
-      if (now - lastProcessedTimestamp < modeSettings.processIntervalMs) {
-        return;
-      }
+      if (now - lastProcessedTimestamp < modeSettings.processIntervalMs) return;
       lastProcessedTimestamp = now;
 
       const lat = position.coords.latitude;
@@ -764,16 +709,9 @@
         return;
       }
 
-      const rawPointData = {
-        lat,
-        lon,
-        accuracyMeters,
-        timestamp
-      };
+      const rawPointData = { lat, lon, accuracyMeters, timestamp };
 
-      if (rawPointShouldBeRejected(rawPointData)) {
-        return;
-      }
+      if (rawPointShouldBeRejected(rawPointData)) return;
 
       lastAcceptedRawPoint = rawPointData;
       addGpsPointToBuffer(rawPointData);
@@ -787,7 +725,6 @@
       try {
         const project = getCurrentProject();
         const smoothedPoint = turf.point(smoothedCoord);
-
         const snapped = turf.nearestPointOnLine(centerline, smoothedPoint, { units: "kilometers" });
 
         const stationAlongLineFeet = turf.convertLength(
@@ -804,9 +741,7 @@
           "feet"
         );
 
-        if (snappedResultShouldBeRejected(displayedStationFeet, offsetFeet)) {
-          return;
-        }
+        if (snappedResultShouldBeRejected(displayedStationFeet, offsetFeet)) return;
 
         const sideText = getSideText(centerline, snapped, [smoothedCoord[0], smoothedCoord[1]]);
 
@@ -847,9 +782,6 @@
       });
     }
 
-    // =========================
-    // SCREEN CAPTURE
-    // =========================
     function loadHtml2CanvasIfNeeded() {
       if (window.html2canvas) {
         return Promise.resolve(window.html2canvas);
@@ -882,12 +814,40 @@
       setTimeout(() => URL.revokeObjectURL(url), 3000);
     }
 
-    function openImageInNewTab(dataUrl) {
-      const win = window.open("", "_blank");
-      if (!win) {
-        throw new Error("Popup blocked while opening capture.");
-      }
+    function buildLoadingTab(win) {
+      win.document.open();
+      win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>Preparing Capture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111111;
+      color: #B8E8E1;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+    .msg {
+      font-size: 18px;
+      text-align: center;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="msg">Preparing capture...</div>
+</body>
+</html>`);
+      win.document.close();
+    }
 
+    function writeImageToTab(win, dataUrl) {
       win.document.open();
       win.document.write(`<!DOCTYPE html>
 <html>
@@ -919,9 +879,19 @@
     }
 
     async function captureCard() {
+      let popupWin = null;
+
       try {
         captureBtnEl.disabled = true;
         setStatus("Capturing card...", true);
+
+        if (IS_IOS) {
+          popupWin = window.open("about:blank", "_blank");
+          if (!popupWin) {
+            throw new Error("Popup blocked.");
+          }
+          buildLoadingTab(popupWin);
+        }
 
         const html2canvas = await loadHtml2CanvasIfNeeded();
 
@@ -934,13 +904,12 @@
         });
 
         const dataUrl = canvas.toDataURL("image/png");
-
         if (!dataUrl || dataUrl === "data:,") {
           throw new Error("Could not generate image data.");
         }
 
         if (IS_IOS) {
-          openImageInNewTab(dataUrl);
+          writeImageToTab(popupWin, dataUrl);
           setStatus("Capture opened in a new tab.", true);
           return;
         }
@@ -950,15 +919,15 @@
         downloadBlob(blob, "stationing-card.png");
         setStatus("Card captured and downloaded.", true);
       } catch (err) {
+        if (popupWin && !popupWin.closed) {
+          popupWin.close();
+        }
         setStatus(`Capture failed: ${err.message}`, false);
       } finally {
         captureBtnEl.disabled = false;
       }
     }
 
-    // =========================
-    // PROJECT DROPDOWN
-    // =========================
     function buildProjectDropdown() {
       projectSelectEl.innerHTML = "";
 
@@ -994,9 +963,6 @@
       });
     }
 
-    // =========================
-    // APP START
-    // =========================
     async function startApp() {
       try {
         if (!Array.isArray(PROJECTS) || PROJECTS.length === 0) {
