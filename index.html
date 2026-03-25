@@ -443,6 +443,7 @@
     const slowModeBtnEl = document.getElementById("slowModeBtn");
     const captureBtnEl = document.getElementById("captureBtn");
     const captureAreaEl = document.getElementById("captureArea");
+    const noteInputEl = document.getElementById("noteInput");
 
     function setStatus(message, isGood = true) {
       statusEl.textContent = message;
@@ -878,6 +879,71 @@
       win.document.close();
     }
 
+    function makeCaptureSafeClone(clonedDoc) {
+      const root = clonedDoc.getElementById("captureArea");
+      if (!root) return;
+
+      const title = root.querySelector(".title");
+      if (title) {
+        title.style.fontFamily = "Arial, sans-serif";
+        title.style.transform = "none";
+        title.style.fontWeight = "700";
+        title.style.letterSpacing = "0";
+      }
+
+      const note = root.querySelector("#noteInput");
+      if (note) {
+        note.value = noteInputEl.value;
+      }
+
+      const fastBtn = root.querySelector("#fastModeBtn");
+      const slowBtn = root.querySelector("#slowModeBtn");
+      const captureBtn = root.querySelector("#captureBtn");
+
+      const safeButtonText = (btn, text, active) => {
+        if (!btn) return;
+        btn.innerHTML = "";
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.fontFamily = "Arial, sans-serif";
+        btn.style.fontSize = "12px";
+        btn.style.fontWeight = "700";
+        btn.style.letterSpacing = "0.3px";
+        btn.style.color = active ? "#16927F" : "#D9D9D9";
+        btn.style.borderColor = active ? "#16927F" : "#D9D9D9";
+        btn.style.boxShadow = "none";
+        btn.style.background = "transparent";
+        btn.textContent = text;
+      };
+
+      safeButtonText(fastBtn, "FAST", currentMode === "fast");
+      safeButtonText(slowBtn, "SLOW", currentMode === "slow");
+      safeButtonText(captureBtn, "CAP", true);
+
+      root.querySelectorAll(".modeIcon, .cameraIcon").forEach(el => {
+        el.remove();
+      });
+
+      root.querySelectorAll("*").forEach(el => {
+        el.style.textShadow = "none";
+        if (el.style.filter) el.style.filter = "none";
+        if (el.style.backdropFilter) el.style.backdropFilter = "none";
+      });
+    }
+
+    async function renderCaptureCanvas(html2canvas) {
+      return html2canvas(captureAreaEl, {
+        backgroundColor: "#1B1B1B",
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        foreignObjectRendering: false,
+        onclone: makeCaptureSafeClone
+      });
+    }
+
     async function captureCard() {
       let popupWin = null;
 
@@ -894,14 +960,7 @@
         }
 
         const html2canvas = await loadHtml2CanvasIfNeeded();
-
-        const canvas = await html2canvas(captureAreaEl, {
-          backgroundColor: "#1B1B1B",
-          scale: Math.min(window.devicePixelRatio || 1, 2),
-          useCORS: true,
-          allowTaint: false,
-          logging: false
-        });
+        const canvas = await renderCaptureCanvas(html2canvas);
 
         const dataUrl = canvas.toDataURL("image/png");
         if (!dataUrl || dataUrl === "data:,") {
