@@ -2,31 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Stationing</title>
   <meta name="theme-color" content="#111111" />
+
   <style>
-    body {
+    @font-face {
+      font-family: "AceBruno";
+      src: url("BrunoAceSC-Regular.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #111111;
+      --card-bg: #1B1B1B;
+      --title: #EA9C01;
+      --large-text: #B8E8E1;
+      --small-text: #1BB69F;
+      --dropdown-accent: #106D5F;
+      --icon-inactive: #D9D9D9;
+      --icon-active: #16927F;
+      --note-bg: #E8F8F5;
+      --status-bg: #252525;
+      --good: #1BB69F;
+      --bad: #ff8e8e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
+      padding: 0;
+      min-height: 100%;
+      background: var(--bg);
       color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 16px;
-      box-sizing: border-box;
+      padding: 18px 16px;
     }
 
     .card {
       width: 100%;
-      max-width: 420px;
-      background: #1b1b1b;
-      border-radius: 16px;
-      padding: 20px;
-      box-sizing: border-box;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      max-width: 410px;
+      background: var(--card-bg);
+      border-radius: 22px;
+      padding: 18px 18px 22px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
     }
 
     .titleRow {
@@ -34,136 +63,272 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      text-align: center;
+    .title {
       flex: 1;
+      text-align: center;
+      font-family: "AceBruno", Arial, sans-serif;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--title);
+      letter-spacing: 0.5px;
+      margin: 0;
+      white-space: nowrap;
     }
 
-    .modeBtn {
+    .iconBtn {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+      border-radius: 10px;
+      border: 1.8px solid var(--icon-inactive);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.05s ease;
+    }
+
+    .iconBtn:active {
+      transform: scale(0.97);
+    }
+
+    .iconBtn img {
+      width: 22px;
+      height: 22px;
+      display: block;
+      opacity: 0.65;
+      filter: grayscale(1) brightness(1.2);
+      pointer-events: none;
+    }
+
+    .iconBtn.active {
+      border-color: var(--icon-active);
+      box-shadow: 0 0 0 1px rgba(22, 146, 127, 0.2);
+    }
+
+    .iconBtn.active img {
+      opacity: 1;
+      filter: none;
+    }
+
+    .row {
+      margin-bottom: 12px;
+    }
+
+    .label {
+      color: var(--small-text);
+      font-size: 12px;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1.8px solid var(--dropdown-accent);
+      border-radius: 13px;
+      background: #2A2A2A;
+      color: var(--large-text);
+      font-size: 17px;
+      padding: 14px 42px 14px 14px;
+      outline: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--small-text) 50%),
+        linear-gradient(135deg, var(--small-text) 50%, transparent 50%);
+      background-position:
+        calc(100% - 19px) calc(50% - 3px),
+        calc(100% - 13px) calc(50% - 3px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+
+    .topStats {
+      display: grid;
+      grid-template-columns: 1.35fr 0.8fr 1fr;
+      gap: 18px;
+      margin-top: 10px;
+      margin-bottom: 22px;
+      align-items: end;
+    }
+
+    .bottomStats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .stat.left {
+      text-align: left;
+    }
+
+    .stat.center {
+      text-align: center;
+    }
+
+    .bigValue {
+      color: var(--large-text);
+      font-size: 23px;
+      font-weight: bold;
+      line-height: 1.1;
+      letter-spacing: 0.2px;
+      word-break: break-word;
+    }
+
+    .mediumValue {
+      color: var(--large-text);
+      font-size: 17px;
+      font-weight: normal;
+      line-height: 1.2;
+    }
+
+    .noteWrap {
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 106px;
+      border: none;
+      border-radius: 6px;
+      background: var(--note-bg);
+      color: #4e5b60;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.35;
+      padding: 12px 12px;
+      resize: none;
+      outline: none;
+      display: block;
+    }
+
+    .cameraWrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .cameraBtn {
       width: 40px;
       height: 40px;
-      min-width: 40px;
-      border-radius: 10px;
-      border: 2px solid #444;
-      background: #2a2a2a;
-      color: #fff;
-      font-size: 20px;
+      border-radius: 8px;
+      border: 1.8px solid var(--icon-active);
+      background: transparent;
+      color: var(--icon-active);
+      font-size: 22px;
       line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 0;
       cursor: pointer;
-      box-sizing: border-box;
-      transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
+      transition: transform 0.05s ease;
     }
 
-    .modeBtn:active {
+    .cameraBtn:active {
       transform: scale(0.97);
     }
 
-    .modeBtn.active {
-      border-color: #34c759;
-      box-shadow: 0 0 0 1px rgba(52, 199, 89, 0.35);
-    }
-
-    .row {
-      margin-bottom: 14px;
-    }
-
-    .label {
-      font-size: 13px;
-      color: #bdbdbd;
-      margin-bottom: 4px;
-    }
-
-    .value {
-      font-size: 28px;
-      font-weight: bold;
-      line-height: 1.2;
-      word-break: break-word;
-    }
-
-    .small {
-      font-size: 16px;
-      font-weight: normal;
-    }
-
     .status {
-      margin-top: 18px;
-      padding: 10px 12px;
-      background: #2a2a2a;
-      border-radius: 10px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--status-bg);
       font-size: 14px;
-      color: #d7d7d7;
+      line-height: 1.3;
+      color: var(--large-text);
     }
 
-    .good { color: #7CFC98; }
-    .bad { color: #ff8e8e; }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
 
-    select {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid #444;
-      background: #2a2a2a;
-      color: #fff;
-      box-sizing: border-box;
+    @media (max-width: 390px) {
+      .title {
+        font-size: 22px;
+      }
+
+      .topStats {
+        gap: 14px;
+      }
+
+      .bigValue {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="card" id="captureArea">
     <div class="titleRow">
-      <button id="fastModeBtn" class="modeBtn" type="button" aria-label="Fast mode" title="Fast mode">🐇</button>
-      <h1>Stationing App</h1>
-      <button id="slowModeBtn" class="modeBtn" type="button" aria-label="Slow mode" title="Slow mode">🐌</button>
+      <button id="fastModeBtn" class="iconBtn" type="button" aria-label="Fast mode" title="Fast mode">
+        <img src="rabbit.svg" alt="" />
+      </button>
+
+      <h1 class="title">Stationing</h1>
+
+      <button id="slowModeBtn" class="iconBtn" type="button" aria-label="Slow mode" title="Slow mode">
+        <img src="snail.svg" alt="" />
+      </button>
     </div>
 
     <div class="row">
-      <div class="label">Project</div>
+      <div class="label">Project:</div>
       <select id="projectSelect"></select>
     </div>
 
-    <div class="row">
-      <div class="label">Station</div>
-      <div id="station" class="value">--+--</div>
+    <div class="topStats">
+      <div class="stat left">
+        <div class="label">Station</div>
+        <div id="station" class="bigValue">--+--</div>
+      </div>
+
+      <div class="stat center">
+        <div class="label">Side</div>
+        <div id="side" class="bigValue">--</div>
+      </div>
+
+      <div class="stat center">
+        <div class="label">Offset</div>
+        <div id="offset" class="bigValue">--.- ft</div>
+      </div>
     </div>
 
-    <div class="row">
-      <div class="label">Offset</div>
-      <div id="offset" class="value">--.- ft</div>
+    <div class="bottomStats">
+      <div class="stat center">
+        <div class="label">GPS Accuracy</div>
+        <div id="accuracy" class="mediumValue">--</div>
+      </div>
+
+      <div class="stat center">
+        <div class="label">Smoothing Points</div>
+        <div id="smoothingCountDisplay" class="mediumValue">--</div>
+      </div>
     </div>
 
-    <div class="row">
-      <div class="label">Side</div>
-      <div id="side" class="value small">--</div>
+    <div class="noteWrap">
+      <textarea id="noteInput" placeholder="Example note"></textarea>
     </div>
 
-    <div class="row">
-      <div class="label">Start Station</div>
-      <div id="startStationDisplay" class="value small">--+--</div>
-    </div>
-
-    <div class="row">
-      <div class="label">GPS Accuracy</div>
-      <div id="accuracy" class="value small">--</div>
-    </div>
-
-    <div class="row">
-      <div class="label">Smoothing Points</div>
-      <div id="smoothingCountDisplay" class="value small">--</div>
+    <div class="cameraWrap">
+      <button id="captureBtn" class="cameraBtn" type="button" aria-label="Capture app card" title="Capture app card">📷</button>
     </div>
 
     <div id="status" class="status">Loading app...</div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
   <script>
     // =========================
     // PROJECT LIST
@@ -217,7 +382,7 @@
     // APP STATE
     // =========================
     let currentProjectIndex = 0;
-    let currentMode = "slow";
+    let currentMode = "fast";
     let centerline = null;
     let watchId = null;
 
@@ -239,7 +404,7 @@
       const rounded = Math.round(feet);
       const staHundreds = Math.floor(rounded / 100);
       const staRemainder = rounded % 100;
-      return `${staHundreds}+${staRemainder.toString().padStart(2, "0")}`;
+      return `${staHundreds.toString().padStart(2, "0")} + ${staRemainder.toString().padStart(2, "0")}`;
     }
 
     function metersToFeet(meters) {
@@ -260,9 +425,7 @@
     }
 
     function updateProjectInfoDisplay() {
-      const project = getCurrentProject();
       const modeSettings = getCurrentModeSettings();
-      document.getElementById("startStationDisplay").textContent = formatStation(project.startStationFeet);
       document.getElementById("smoothingCountDisplay").textContent = `${recentGpsPoints.length}/${modeSettings.smoothingPointCount}`;
     }
 
@@ -283,7 +446,6 @@
 
     function setMode(modeName) {
       if (!MODES[modeName]) return;
-
       currentMode = modeName;
       localStorage.setItem(MODE_STORAGE_KEY, currentMode);
       resetTrackingBuffers();
@@ -330,12 +492,12 @@
 
       const cross = (abx * apy) - (aby * apx);
 
-      if (Math.abs(cross) < 1e-12) return "On Line";
-      return cross > 0 ? "Left" : "Right";
+      if (Math.abs(cross) < 1e-12) return "ON";
+      return cross > 0 ? "LT" : "RT";
     }
 
     function getSideText(centerlineFeature, snapped, originalCoord) {
-      let sideText = "Unknown";
+      let sideText = "--";
 
       if (centerlineFeature.geometry.type === "LineString") {
         const lineCoords = centerlineFeature.geometry.coordinates;
@@ -463,18 +625,12 @@
       const speedFeetPerSecond = distanceFeet / elapsedSeconds;
 
       if (distanceFeet > modeSettings.maxJumpFeet) {
-        setStatus(
-          `Rejected GPS outlier: jump too large (${distanceFeet.toFixed(1)} ft).`,
-          false
-        );
+        setStatus(`Rejected GPS outlier: jump too large (${distanceFeet.toFixed(1)} ft).`, false);
         return true;
       }
 
       if (speedFeetPerSecond > modeSettings.maxSpeedFeetPerSecond) {
-        setStatus(
-          `Rejected GPS outlier: speed too high (${speedFeetPerSecond.toFixed(1)} ft/s).`,
-          false
-        );
+        setStatus(`Rejected GPS outlier: speed too high (${speedFeetPerSecond.toFixed(1)} ft/s).`, false);
         return true;
       }
 
@@ -490,18 +646,12 @@
       const offsetSpikeFeet = Math.abs(offsetFeet - lastAcceptedSnappedResult.offsetFeet);
 
       if (stationJumpFeet > modeSettings.maxStationJumpFeet) {
-        setStatus(
-          `Rejected snapped outlier: station jump too large (${stationJumpFeet.toFixed(1)} ft).`,
-          false
-        );
+        setStatus(`Rejected snapped outlier: station jump too large (${stationJumpFeet.toFixed(1)} ft).`, false);
         return true;
       }
 
       if (offsetSpikeFeet > modeSettings.maxOffsetSpikeFeet) {
-        setStatus(
-          `Rejected snapped outlier: offset spike too large (${offsetSpikeFeet.toFixed(1)} ft).`,
-          false
-        );
+        setStatus(`Rejected snapped outlier: offset spike too large (${offsetSpikeFeet.toFixed(1)} ft).`, false);
         return true;
       }
 
@@ -576,7 +726,7 @@
         };
 
         document.getElementById("station").textContent = formatStation(displayedStationFeet);
-        document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
+        document.getElementById("offset").textContent = `${offsetFeet.toFixed(2)} ft`;
         document.getElementById("side").textContent = sideText;
         updateProjectInfoDisplay();
 
@@ -605,6 +755,65 @@
         maximumAge: 0,
         timeout: 10000
       });
+    }
+
+    // =========================
+    // SCREEN CAPTURE
+    // =========================
+    async function captureCard() {
+      const captureArea = document.getElementById("captureArea");
+      const captureBtn = document.getElementById("captureBtn");
+      const oldText = captureBtn.textContent;
+
+      try {
+        captureBtn.textContent = "…";
+
+        const canvas = await html2canvas(captureArea, {
+          backgroundColor: null,
+          scale: Math.min(window.devicePixelRatio || 1, 2),
+          useCORS: true
+        });
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            setStatus("Could not create screenshot image.", false);
+            captureBtn.textContent = oldText;
+            return;
+          }
+
+          const file = new File([blob], "stationing-card.png", { type: "image/png" });
+
+          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: "Stationing",
+                text: "Stationing card capture"
+              });
+              setStatus("Card capture ready.", true);
+            } catch (shareErr) {
+              if (shareErr && shareErr.name !== "AbortError") {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "stationing-card.png";
+                link.click();
+                setStatus("Card captured and downloaded.", true);
+              }
+            }
+          } else {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "stationing-card.png";
+            link.click();
+            setStatus("Card captured and downloaded.", true);
+          }
+
+          captureBtn.textContent = oldText;
+        }, "image/png");
+      } catch (err) {
+        captureBtn.textContent = oldText;
+        setStatus(`Capture failed: ${err.message}`, false);
+      }
     }
 
     // =========================
@@ -667,6 +876,7 @@
 
         document.getElementById("fastModeBtn").addEventListener("click", () => setMode("fast"));
         document.getElementById("slowModeBtn").addEventListener("click", () => setMode("slow"));
+        document.getElementById("captureBtn").addEventListener("click", captureCard);
 
         updateModeButtonStyles();
         buildProjectDropdown();
