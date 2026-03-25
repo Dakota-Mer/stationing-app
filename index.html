@@ -90,6 +90,11 @@
     </div>
 
     <div class="row">
+      <div class="label">Start Station</div>
+      <div id="startStationDisplay" class="value small">--+--</div>
+    </div>
+
+    <div class="row">
       <div class="label">GPS Accuracy</div>
       <div id="accuracy" class="value small">--</div>
     </div>
@@ -109,6 +114,14 @@
     // =========================
     const GEOJSON_FILE = "project1.geojson";
     const MAX_GPS_ACCURACY_METERS = 10;
+
+    // CHANGE THIS TO YOUR PROJECT START STATION
+    // Example:
+    // 0+00     = 0
+    // 10+00    = 1000
+    // 1663+00  = 166300
+    // 1663+45  = 166345
+    const START_STATION_FEET = 80065;
 
     // =========================
     // APP STATE
@@ -135,33 +148,20 @@
     // =========================
     // GEOMETRY HELPERS
     // =========================
-
-    // Find the segment direction to use for left/right testing.
-    // nearestPointOnLine gives an index tied to the nearest line part/location.
-    // We use that to pick the matching segment.
     function getSegmentForSnap(lineCoords, snappedIndex) {
       if (lineCoords.length < 2) return null;
 
-      // Middle of line: use index -> index+1
       if (snappedIndex >= 0 && snappedIndex < lineCoords.length - 1) {
         return [lineCoords[snappedIndex], lineCoords[snappedIndex + 1]];
       }
 
-      // If snap lands at the very end, use previous segment
       if (snappedIndex >= lineCoords.length - 1) {
         return [lineCoords[lineCoords.length - 2], lineCoords[lineCoords.length - 1]];
       }
 
-      // Fallback
       return [lineCoords[0], lineCoords[1]];
     }
 
-    // Determine whether GPS point is left or right of the line segment direction.
-    // Positive cross product = left
-    // Negative cross product = right
-    //
-    // Because lon/lat are angular units, we scale longitude by cos(latitude)
-    // so the left/right math behaves better locally.
     function getSideOfSegment(segmentStart, segmentEnd, pointCoord) {
       const avgLat = ((segmentStart[1] + segmentEnd[1] + pointCoord[1]) / 3) * Math.PI / 180;
       const cosLat = Math.cos(avgLat);
@@ -180,10 +180,9 @@
 
       const cross = (abx * apy) - (aby * apx);
 
-      // Tiny values mean basically on the line
       if (Math.abs(cross) < 1e-12) return "On Line";
 
-      return cross > 0 ? "Left" : "Right";
+      return cross > 0 ? "LT" : "RT";
     }
 
     async function loadCenterline() {
@@ -207,9 +206,11 @@
         return lineFeature;
       }
 
-      if (data.type === "Feature" &&
-          data.geometry &&
-          (data.geometry.type === "LineString" || data.geometry.type === "MultiLineString")) {
+      if (
+        data.type === "Feature" &&
+        data.geometry &&
+        (data.geometry.type === "LineString" || data.geometry.type === "MultiLineString")
+      ) {
         return data;
       }
 
@@ -223,6 +224,7 @@
 
       document.getElementById("accuracy").textContent = `${accuracy.toFixed(1)} m`;
       document.getElementById("coords").textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+      document.getElementById("startStationDisplay").textContent = formatStation(START_STATION_FEET);
 
       if (accuracy > MAX_GPS_ACCURACY_METERS) {
         setStatus(`Waiting for better GPS accuracy. Current: ${accuracy.toFixed(1)} m`, false);
@@ -236,16 +238,21 @@
 
       try {
         const gpsPoint = turf.point([lon, lat]);
-
-        // nearestPointOnLine returns:
-        // - dist = distance from point to line
-        // - location = distance along line from start to snapped point
-        // - index = closest line part index
         const snapped = turf.nearestPointOnLine(centerline, gpsPoint, { units: "kilometers" });
-        const snappedCoords = snapped.geometry.coordinates;
 
-        const stationFeet = turf.convertLength(snapped.properties.location, "kilometers", "feet");
-        const offsetFeet = turf.convertLength(snapped.properties.dist, "kilometers", "feet");
+        const stationAlongLineFeet = turf.convertLength(
+          snapped.properties.location,
+          "kilometers",
+          "feet"
+        );
+
+        const displayedStationFeet = START_STATION_FEET + stationAlongLineFeet;
+
+        const offsetFeet = turf.convertLength(
+          snapped.properties.dist,
+          "kilometers",
+          "feet"
+        );
 
         let sideText = "Unknown";
 
@@ -258,7 +265,6 @@
             sideText = getSideOfSegment(segment[0], segment[1], [lon, lat]);
           }
         } else if (centerline.geometry.type === "MultiLineString") {
-          // For now, just use the matched part of the multiline
           const multiIndex = snapped.properties.multiFeatureIndex ?? 0;
           const lineCoords = centerline.geometry.coordinates[multiIndex];
           const snappedIndex = snapped.properties.index ?? 0;
@@ -269,15 +275,9 @@
           }
         }
 
-        document.getElementById("station").textContent = formatStation(stationFeet);
-
-        if (sideText === "Left" || sideText === "Right") {
-          document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
-          document.getElementById("side").textContent = sideText;
-        } else {
-          document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
-          document.getElementById("side").textContent = sideText;
-        }
+        document.getElementById("station").textContent = formatStation(displayedStationFeet);
+        document.getElementById("offset").textContent = `${offsetFeet.toFixed(1)} ft`;
+        document.getElementById("side").textContent = sideText;
 
         setStatus("GPS locked and station updated.");
       } catch (err) {
@@ -292,6 +292,7 @@
     async function startApp() {
       try {
         centerline = await loadCenterline();
+        document.getElementById("startStationDisplay").textContent = formatStation(START_STATION_FEET);
         setStatus("Centerline loaded. Waiting for GPS...");
 
         if (!navigator.geolocation) {
