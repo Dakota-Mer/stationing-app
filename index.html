@@ -30,6 +30,7 @@
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -69,21 +70,27 @@
     .title {
       flex: 1;
       text-align: center;
-      font-family: "AceBruno", Arial, sans-serif;
-      font-size: 31px;
-      line-height: 1;
-      color: var(--title);
-      letter-spacing: 0.35px;
       margin: 0;
       white-space: nowrap;
     }
 
+    .titleText {
+      display: inline-block;
+      font-family: "AceBruno", Arial, sans-serif;
+      font-size: 33px;
+      line-height: 1;
+      color: var(--title);
+      letter-spacing: 0.15px;
+      transform: scaleY(1.15);
+      transform-origin: center;
+    }
+
     .iconBtn {
-      width: 56px;
-      height: 56px;
-      min-width: 56px;
-      min-height: 56px;
-      border-radius: 16px;
+      width: 50px;
+      height: 50px;
+      min-width: 50px;
+      min-height: 50px;
+      border-radius: 14px;
       border: 2px solid var(--icon-inactive);
       background: transparent;
       display: flex;
@@ -94,7 +101,8 @@
       transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
     }
 
-    .iconBtn:active {
+    .iconBtn:active,
+    .cameraBtn:active {
       transform: scale(0.97);
     }
 
@@ -104,11 +112,17 @@
     }
 
     .modeIcon {
-      width: 30px;
-      height: 30px;
+      width: 24px;
+      height: 24px;
       background-color: var(--icon-inactive);
       display: block;
       transition: background-color 0.15s ease;
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
     }
 
     .iconBtn.active .modeIcon {
@@ -116,13 +130,13 @@
     }
 
     .modeIcon.rabbit {
-      -webkit-mask: url("rabbit.svg") center / contain no-repeat;
-      mask: url("rabbit.svg") center / contain no-repeat;
+      -webkit-mask-image: url("rabbit.svg");
+      mask-image: url("rabbit.svg");
     }
 
     .modeIcon.snail {
-      -webkit-mask: url("snail.svg") center / contain no-repeat;
-      mask: url("snail.svg") center / contain no-repeat;
+      -webkit-mask-image: url("snail.svg");
+      mask-image: url("snail.svg");
     }
 
     .row {
@@ -176,7 +190,7 @@
     .stat {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      min-width: 0;
     }
 
     .stat.left {
@@ -189,12 +203,18 @@
       text-align: center;
     }
 
+    .stat.sideStat,
+    .stat.offsetStat {
+      align-items: flex-start;
+      text-align: left;
+    }
+
     .bigValue {
       color: var(--large-text);
-      font-size: 28px;
+      font-size: 30px;
       font-weight: bold;
-      line-height: 1.1;
-      letter-spacing: 0.2px;
+      line-height: 1.08;
+      letter-spacing: 0.1px;
       word-break: break-word;
     }
 
@@ -236,14 +256,11 @@
     }
 
     .cameraBtn {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       border-radius: 12px;
       border: 2px solid var(--icon-active);
       background: transparent;
-      color: var(--icon-active);
-      font-size: 24px;
-      line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -252,8 +269,19 @@
       transition: transform 0.05s ease;
     }
 
-    .cameraBtn:active {
-      transform: scale(0.97);
+    .cameraIcon {
+      width: 22px;
+      height: 22px;
+      background-color: var(--icon-active);
+      display: block;
+      -webkit-mask-image: url("camera.svg");
+      mask-image: url("camera.svg");
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
     }
 
     .status {
@@ -268,28 +296,28 @@
       color: var(--large-text);
     }
 
-    .good { color: var(--good); }
-    .bad { color: var(--bad); }
+    .status.good { color: var(--good); }
+    .status.bad { color: var(--bad); }
 
     @media (max-width: 390px) {
-      .title {
-        font-size: 28px;
+      .titleText {
+        font-size: 30px;
       }
 
       .iconBtn {
-        width: 52px;
-        height: 52px;
-        min-width: 52px;
-        min-height: 52px;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
       }
 
       .modeIcon {
-        width: 28px;
-        height: 28px;
+        width: 23px;
+        height: 23px;
       }
 
       .bigValue {
-        font-size: 26px;
+        font-size: 28px;
       }
     }
   </style>
@@ -301,7 +329,7 @@
         <span class="modeIcon rabbit" aria-hidden="true"></span>
       </button>
 
-      <h1 class="title">Stationing</h1>
+      <h1 class="title"><span class="titleText">Stationing</span></h1>
 
       <button id="slowModeBtn" class="iconBtn" type="button" aria-label="Slow mode" title="Slow mode">
         <span class="modeIcon snail" aria-hidden="true"></span>
@@ -319,12 +347,12 @@
         <div id="station" class="bigValue">--+--</div>
       </div>
 
-      <div class="stat center">
+      <div class="stat sideStat">
         <div class="label">Side</div>
         <div id="side" class="bigValue">--</div>
       </div>
 
-      <div class="stat center">
+      <div class="stat offsetStat">
         <div class="label">Offset</div>
         <div id="offset" class="bigValue">--.- ft</div>
       </div>
@@ -347,14 +375,15 @@
     </div>
 
     <div class="cameraWrap">
-      <button id="captureBtn" class="cameraBtn" type="button" aria-label="Capture app card" title="Capture app card">📷</button>
+      <button id="captureBtn" class="cameraBtn" type="button" aria-label="Capture app card" title="Capture app card">
+        <span class="cameraIcon" aria-hidden="true"></span>
+      </button>
     </div>
 
-    <div id="status" class="status">Loading app...</div>
+    <div id="status" class="status good">Loading app...</div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
     // =========================
@@ -404,6 +433,8 @@
 
     const PROJECT_STORAGE_KEY = "stationingAppSelectedProjectIndex";
     const MODE_STORAGE_KEY = "stationingAppTrackingMode";
+    const GPS_PROCESS_INTERVAL_MS = 650;
+    const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
     // =========================
     // APP STATE
@@ -416,15 +447,32 @@
     let recentGpsPoints = [];
     let lastAcceptedRawPoint = null;
     let lastAcceptedSnappedResult = null;
+    let lastProcessedTimestamp = 0;
+
+    let html2canvasLoader = null;
+
+    // =========================
+    // DOM CACHE
+    // =========================
+    const stationEl = document.getElementById("station");
+    const offsetEl = document.getElementById("offset");
+    const sideEl = document.getElementById("side");
+    const accuracyEl = document.getElementById("accuracy");
+    const smoothingCountEl = document.getElementById("smoothingCountDisplay");
+    const statusEl = document.getElementById("status");
+    const projectSelectEl = document.getElementById("projectSelect");
+    const fastModeBtnEl = document.getElementById("fastModeBtn");
+    const slowModeBtnEl = document.getElementById("slowModeBtn");
+    const captureBtnEl = document.getElementById("captureBtn");
+    const captureAreaEl = document.getElementById("captureArea");
 
     // =========================
     // UI HELPERS
     // =========================
     function setStatus(message, isGood = true) {
-      const el = document.getElementById("status");
-      el.innerHTML = isGood
-        ? `<span class="good">${message}</span>`
-        : `<span class="bad">${message}</span>`;
+      statusEl.textContent = message;
+      statusEl.classList.toggle("good", !!isGood);
+      statusEl.classList.toggle("bad", !isGood);
     }
 
     function formatStation(feet) {
@@ -447,20 +495,20 @@
     }
 
     function updateModeButtonStyles() {
-      document.getElementById("fastModeBtn").classList.toggle("active", currentMode === "fast");
-      document.getElementById("slowModeBtn").classList.toggle("active", currentMode === "slow");
+      fastModeBtnEl.classList.toggle("active", currentMode === "fast");
+      slowModeBtnEl.classList.toggle("active", currentMode === "slow");
     }
 
     function updateProjectInfoDisplay() {
       const modeSettings = getCurrentModeSettings();
-      document.getElementById("smoothingCountDisplay").textContent = `${recentGpsPoints.length}/${modeSettings.smoothingPointCount}`;
+      smoothingCountEl.textContent = `${recentGpsPoints.length}/${modeSettings.smoothingPointCount}`;
     }
 
     function resetDisplayedValues() {
-      document.getElementById("station").textContent = "--+--";
-      document.getElementById("offset").textContent = "--.- ft";
-      document.getElementById("side").textContent = "--";
-      document.getElementById("accuracy").textContent = "--";
+      stationEl.textContent = "--+--";
+      offsetEl.textContent = "--.- ft";
+      sideEl.textContent = "--";
+      accuracyEl.textContent = "--";
       updateProjectInfoDisplay();
     }
 
@@ -468,13 +516,16 @@
       recentGpsPoints = [];
       lastAcceptedRawPoint = null;
       lastAcceptedSnappedResult = null;
+      lastProcessedTimestamp = 0;
       updateProjectInfoDisplay();
     }
 
     function setMode(modeName) {
       if (!MODES[modeName]) return;
+
       currentMode = modeName;
       localStorage.setItem(MODE_STORAGE_KEY, currentMode);
+
       resetTrackingBuffers();
       updateModeButtonStyles();
       updateProjectInfoDisplay();
@@ -592,7 +643,7 @@
       resetDisplayedValues();
       updateProjectInfoDisplay();
 
-      const response = await fetch(project.file);
+      const response = await fetch(project.file, { cache: "no-store" });
 
       if (!response.ok) {
         throw new Error(`Could not load ${project.file}`);
@@ -689,12 +740,18 @@
     // GPS UPDATE
     // =========================
     function updatePosition(position) {
+      const now = Date.now();
+      if (now - lastProcessedTimestamp < GPS_PROCESS_INTERVAL_MS) {
+        return;
+      }
+      lastProcessedTimestamp = now;
+
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
       const accuracyMeters = position.coords.accuracy;
-      const timestamp = position.timestamp || Date.now();
+      const timestamp = position.timestamp || now;
 
-      document.getElementById("accuracy").textContent = `${metersToFeet(accuracyMeters).toFixed(1)} ft`;
+      accuracyEl.textContent = `${metersToFeet(accuracyMeters).toFixed(1)} ft`;
 
       if (!centerline) {
         setStatus("Centerline not loaded yet.", false);
@@ -752,9 +809,9 @@
           offsetFeet
         };
 
-        document.getElementById("station").textContent = formatStation(displayedStationFeet);
-        document.getElementById("offset").textContent = `${offsetFeet.toFixed(2)} ft`;
-        document.getElementById("side").textContent = sideText;
+        stationEl.textContent = formatStation(displayedStationFeet);
+        offsetEl.textContent = `${offsetFeet.toFixed(2)} ft`;
+        sideEl.textContent = sideText;
         updateProjectInfoDisplay();
 
         setStatus(`GPS locked on ${project.name} (${MODES[currentMode].label} mode).`, true);
@@ -779,7 +836,7 @@
 
       watchId = navigator.geolocation.watchPosition(updatePosition, handleGpsError, {
         enableHighAccuracy: true,
-        maximumAge: 0,
+        maximumAge: 1000,
         timeout: 10000
       });
     }
@@ -787,6 +844,26 @@
     // =========================
     // SCREEN CAPTURE
     // =========================
+    function loadHtml2CanvasIfNeeded() {
+      if (window.html2canvas) {
+        return Promise.resolve(window.html2canvas);
+      }
+
+      if (html2canvasLoader) {
+        return html2canvasLoader;
+      }
+
+      html2canvasLoader = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+        script.onload = () => resolve(window.html2canvas);
+        script.onerror = () => reject(new Error("Could not load html2canvas."));
+        document.head.appendChild(script);
+      });
+
+      return html2canvasLoader;
+    }
+
     function canvasToBlob(canvas) {
       return new Promise((resolve, reject) => {
         canvas.toBlob((blob) => {
@@ -796,57 +873,84 @@
       });
     }
 
-    async function downloadBlob(blob, filename) {
+    function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
+      link.rel = "noopener";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
     }
 
     async function captureCard() {
-      const captureArea = document.getElementById("captureArea");
-      const captureBtn = document.getElementById("captureBtn");
-      const oldText = captureBtn.textContent;
+      const originalAria = captureBtnEl.getAttribute("aria-label");
 
       try {
-        captureBtn.textContent = "…";
+        captureBtnEl.disabled = true;
+        captureBtnEl.setAttribute("aria-label", "Capturing");
 
-        const canvas = await html2canvas(captureArea, {
+        const html2canvas = await loadHtml2CanvasIfNeeded();
+
+        const canvas = await html2canvas(captureAreaEl, {
           backgroundColor: "#1B1B1B",
           scale: Math.min(window.devicePixelRatio || 1, 2),
           useCORS: true,
           logging: false
         });
 
-        const blob = await canvasToBlob(canvas);
-        const file = new File([blob], "stationing-card.png", { type: "image/png" });
+        if (IS_IOS) {
+          const dataUrl = canvas.toDataURL("image/png");
+          const win = window.open("", "_blank");
 
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: "Stationing",
-              text: "Stationing card capture"
-            });
-            setStatus("Card capture ready.", true);
-          } catch (shareErr) {
-            if (shareErr && shareErr.name !== "AbortError") {
-              await downloadBlob(blob, "stationing-card.png");
-              setStatus("Card captured and downloaded.", true);
-            }
+          if (!win) {
+            throw new Error("Popup blocked while opening capture.");
           }
-        } else {
-          await downloadBlob(blob, "stationing-card.png");
-          setStatus("Card captured and downloaded.", true);
+
+          win.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Stationing Capture</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <style>
+                  html, body {
+                    margin: 0;
+                    padding: 0;
+                    background: #111;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100%;
+                  }
+                  img {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                  }
+                </style>
+              </head>
+              <body>
+                <img src="${dataUrl}" alt="Stationing capture" />
+              </body>
+            </html>
+          `);
+          win.document.close();
+
+          setStatus("Capture opened in a new tab.", true);
+          return;
         }
+
+        const blob = await canvasToBlob(canvas);
+        downloadBlob(blob, "stationing-card.png");
+        setStatus("Card captured and downloaded.", true);
       } catch (err) {
         setStatus(`Capture failed: ${err.message}`, false);
       } finally {
-        captureBtn.textContent = oldText;
+        captureBtnEl.disabled = false;
+        captureBtnEl.setAttribute("aria-label", originalAria || "Capture app card");
       }
     }
 
@@ -854,23 +958,22 @@
     // PROJECT DROPDOWN
     // =========================
     function buildProjectDropdown() {
-      const select = document.getElementById("projectSelect");
-      select.innerHTML = "";
+      projectSelectEl.innerHTML = "";
 
       PROJECTS.forEach((project, index) => {
         const option = document.createElement("option");
         option.value = index;
         option.textContent = project.name;
-        select.appendChild(option);
+        projectSelectEl.appendChild(option);
       });
 
       if (currentProjectIndex < 0 || currentProjectIndex >= PROJECTS.length) {
         currentProjectIndex = 0;
       }
 
-      select.value = String(currentProjectIndex);
+      projectSelectEl.value = String(currentProjectIndex);
 
-      select.addEventListener("change", async function () {
+      projectSelectEl.addEventListener("change", async function () {
         currentProjectIndex = Number(this.value);
         localStorage.setItem(PROJECT_STORAGE_KEY, String(currentProjectIndex));
 
@@ -908,9 +1011,9 @@
           currentMode = savedMode;
         }
 
-        document.getElementById("fastModeBtn").addEventListener("click", () => setMode("fast"));
-        document.getElementById("slowModeBtn").addEventListener("click", () => setMode("slow"));
-        document.getElementById("captureBtn").addEventListener("click", captureCard);
+        fastModeBtnEl.addEventListener("click", () => setMode("fast"));
+        slowModeBtnEl.addEventListener("click", () => setMode("slow"));
+        captureBtnEl.addEventListener("click", captureCard);
 
         updateModeButtonStyles();
         buildProjectDropdown();
