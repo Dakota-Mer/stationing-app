@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"name": "Untitled map",
+"features": [
+{ "type": "Feature", "properties": { "Name": "sidewalk" }, "geometry": { "type": "LineString", "coordinates": [ [ -97.8232356, 32.7591149, 0.0 ], [ -97.8237877, 32.7595018, 0.0 ] ] } }
+]
+}
