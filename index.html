@@ -53,7 +53,7 @@
       width: 100%;
       max-width: 410px;
       background: var(--card-bg);
-      border-radius: 22px;
+      border-radius: 24px;
       padding: 18px 18px 22px;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
     }
@@ -63,48 +63,39 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .title {
       flex: 1;
       text-align: center;
       font-family: "AceBruno", Arial, sans-serif;
-      font-size: 24px;
+      font-size: 31px;
       line-height: 1;
       color: var(--title);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.35px;
       margin: 0;
       white-space: nowrap;
     }
 
     .iconBtn {
-      width: 42px;
-      height: 42px;
-      min-width: 42px;
-      min-height: 42px;
-      border-radius: 10px;
-      border: 1.8px solid var(--icon-inactive);
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      min-height: 56px;
+      border-radius: 16px;
+      border: 2px solid var(--icon-inactive);
       background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 0;
       cursor: pointer;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.05s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
     }
 
     .iconBtn:active {
       transform: scale(0.97);
-    }
-
-    .iconBtn img {
-      width: 22px;
-      height: 22px;
-      display: block;
-      opacity: 0.65;
-      filter: grayscale(1) brightness(1.2);
-      pointer-events: none;
     }
 
     .iconBtn.active {
@@ -112,9 +103,26 @@
       box-shadow: 0 0 0 1px rgba(22, 146, 127, 0.2);
     }
 
-    .iconBtn.active img {
-      opacity: 1;
-      filter: none;
+    .modeIcon {
+      width: 30px;
+      height: 30px;
+      background-color: var(--icon-inactive);
+      display: block;
+      transition: background-color 0.15s ease;
+    }
+
+    .iconBtn.active .modeIcon {
+      background-color: var(--icon-active);
+    }
+
+    .modeIcon.rabbit {
+      -webkit-mask: url("rabbit.svg") center / contain no-repeat;
+      mask: url("rabbit.svg") center / contain no-repeat;
+    }
+
+    .modeIcon.snail {
+      -webkit-mask: url("snail.svg") center / contain no-repeat;
+      mask: url("snail.svg") center / contain no-repeat;
     }
 
     .row {
@@ -132,30 +140,30 @@
       width: 100%;
       appearance: none;
       -webkit-appearance: none;
-      border: 1.8px solid var(--dropdown-accent);
-      border-radius: 13px;
+      border: 2px solid var(--dropdown-accent);
+      border-radius: 18px;
       background: #2A2A2A;
       color: var(--large-text);
       font-size: 17px;
-      padding: 14px 42px 14px 14px;
+      padding: 17px 46px 17px 16px;
       outline: none;
       background-image:
         linear-gradient(45deg, transparent 50%, var(--small-text) 50%),
         linear-gradient(135deg, var(--small-text) 50%, transparent 50%);
       background-position:
-        calc(100% - 19px) calc(50% - 3px),
-        calc(100% - 13px) calc(50% - 3px);
-      background-size: 6px 6px, 6px 6px;
+        calc(100% - 22px) calc(50% - 4px),
+        calc(100% - 14px) calc(50% - 4px);
+      background-size: 8px 8px, 8px 8px;
       background-repeat: no-repeat;
     }
 
     .topStats {
       display: grid;
-      grid-template-columns: 1.35fr 0.8fr 1fr;
-      gap: 18px;
-      margin-top: 10px;
-      margin-bottom: 22px;
-      align-items: end;
+      grid-template-columns: 1.2fr 0.75fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+      margin-bottom: 28px;
+      align-items: start;
     }
 
     .bottomStats {
@@ -163,20 +171,27 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
       margin-bottom: 18px;
-      text-align: center;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .stat.left {
+      align-items: flex-start;
       text-align: left;
     }
 
     .stat.center {
+      align-items: center;
       text-align: center;
     }
 
     .bigValue {
       color: var(--large-text);
-      font-size: 23px;
+      font-size: 28px;
       font-weight: bold;
       line-height: 1.1;
       letter-spacing: 0.2px;
@@ -191,39 +206,43 @@
     }
 
     .noteWrap {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     textarea {
       width: 100%;
-      min-height: 106px;
+      min-height: 108px;
       border: none;
-      border-radius: 6px;
+      border-radius: 12px;
       background: var(--note-bg);
       color: #4e5b60;
       font-family: Arial, sans-serif;
       font-size: 14px;
       line-height: 1.35;
-      padding: 12px 12px;
+      padding: 14px 14px;
       resize: none;
       outline: none;
       display: block;
     }
 
+    textarea::placeholder {
+      color: #9d9d9d;
+    }
+
     .cameraWrap {
       display: flex;
       justify-content: center;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .cameraBtn {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      border: 1.8px solid var(--icon-active);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 2px solid var(--icon-active);
       background: transparent;
       color: var(--icon-active);
-      font-size: 22px;
+      font-size: 24px;
       line-height: 1;
       display: flex;
       align-items: center;
@@ -241,11 +260,11 @@
       min-height: 40px;
       display: flex;
       align-items: center;
-      padding: 10px 14px;
-      border-radius: 12px;
+      padding: 12px 16px;
+      border-radius: 16px;
       background: var(--status-bg);
       font-size: 14px;
-      line-height: 1.3;
+      line-height: 1.35;
       color: var(--large-text);
     }
 
@@ -254,15 +273,23 @@
 
     @media (max-width: 390px) {
       .title {
-        font-size: 22px;
+        font-size: 28px;
       }
 
-      .topStats {
-        gap: 14px;
+      .iconBtn {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        min-height: 52px;
+      }
+
+      .modeIcon {
+        width: 28px;
+        height: 28px;
       }
 
       .bigValue {
-        font-size: 20px;
+        font-size: 26px;
       }
     }
   </style>
@@ -271,13 +298,13 @@
   <div class="card" id="captureArea">
     <div class="titleRow">
       <button id="fastModeBtn" class="iconBtn" type="button" aria-label="Fast mode" title="Fast mode">
-        <img src="rabbit.svg" alt="" />
+        <span class="modeIcon rabbit" aria-hidden="true"></span>
       </button>
 
       <h1 class="title">Stationing</h1>
 
       <button id="slowModeBtn" class="iconBtn" type="button" aria-label="Slow mode" title="Slow mode">
-        <img src="snail.svg" alt="" />
+        <span class="modeIcon snail" aria-hidden="true"></span>
       </button>
     </div>
 
@@ -760,6 +787,26 @@
     // =========================
     // SCREEN CAPTURE
     // =========================
+    function canvasToBlob(canvas) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Could not create PNG file."));
+        }, "image/png");
+      });
+    }
+
+    async function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
     async function captureCard() {
       const captureArea = document.getElementById("captureArea");
       const captureBtn = document.getElementById("captureBtn");
@@ -769,50 +816,37 @@
         captureBtn.textContent = "…";
 
         const canvas = await html2canvas(captureArea, {
-          backgroundColor: null,
+          backgroundColor: "#1B1B1B",
           scale: Math.min(window.devicePixelRatio || 1, 2),
-          useCORS: true
+          useCORS: true,
+          logging: false
         });
 
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            setStatus("Could not create screenshot image.", false);
-            captureBtn.textContent = oldText;
-            return;
-          }
+        const blob = await canvasToBlob(canvas);
+        const file = new File([blob], "stationing-card.png", { type: "image/png" });
 
-          const file = new File([blob], "stationing-card.png", { type: "image/png" });
-
-          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: "Stationing",
-                text: "Stationing card capture"
-              });
-              setStatus("Card capture ready.", true);
-            } catch (shareErr) {
-              if (shareErr && shareErr.name !== "AbortError") {
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = "stationing-card.png";
-                link.click();
-                setStatus("Card captured and downloaded.", true);
-              }
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: "Stationing",
+              text: "Stationing card capture"
+            });
+            setStatus("Card capture ready.", true);
+          } catch (shareErr) {
+            if (shareErr && shareErr.name !== "AbortError") {
+              await downloadBlob(blob, "stationing-card.png");
+              setStatus("Card captured and downloaded.", true);
             }
-          } else {
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "stationing-card.png";
-            link.click();
-            setStatus("Card captured and downloaded.", true);
           }
-
-          captureBtn.textContent = oldText;
-        }, "image/png");
+        } else {
+          await downloadBlob(blob, "stationing-card.png");
+          setStatus("Card captured and downloaded.", true);
+        }
       } catch (err) {
-        captureBtn.textContent = oldText;
         setStatus(`Capture failed: ${err.message}`, false);
+      } finally {
+        captureBtn.textContent = oldText;
       }
     }
 
