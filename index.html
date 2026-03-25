@@ -98,7 +98,8 @@
     }
 
     .iconBtn:active,
-    .cameraBtn:active {
+    .cameraBtn:active,
+    .captureOverlayBtn:active {
       transform: scale(0.97);
     }
 
@@ -300,6 +301,77 @@
     .good { color: var(--good); }
     .bad { color: var(--bad); }
 
+    .captureOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.92);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .captureOverlay.open {
+      display: flex;
+    }
+
+    .captureOverlayText {
+      color: #B8E8E1;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.35;
+      max-width: 420px;
+    }
+
+    .capturePreviewWrap {
+      max-width: min(94vw, 520px);
+      max-height: 68vh;
+      overflow: auto;
+      border-radius: 18px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .capturePreview {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #1B1B1B;
+      border-radius: 18px;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: default;
+    }
+
+    .captureOverlayActions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .captureOverlayBtn {
+      border: 2px solid #16927F;
+      background: transparent;
+      color: #B8E8E1;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .captureCloneHost {
+      position: fixed;
+      left: -10000px;
+      top: 0;
+      width: 430px;
+      pointer-events: none;
+      opacity: 0;
+      z-index: -1;
+    }
+
     @media (max-width: 390px) {
       .title {
         font-size: 30px;
@@ -384,6 +456,19 @@
     <div id="status" class="status good">Loading app...</div>
   </div>
 
+  <div id="captureOverlay" class="captureOverlay" aria-hidden="true">
+    <div id="captureOverlayText" class="captureOverlayText"></div>
+    <div class="capturePreviewWrap">
+      <img id="capturePreview" class="capturePreview" alt="Captured card preview" />
+    </div>
+    <div class="captureOverlayActions">
+      <button id="saveCaptureBtn" class="captureOverlayBtn" type="button">Save</button>
+      <button id="closeCaptureBtn" class="captureOverlayBtn" type="button">Close</button>
+    </div>
+  </div>
+
+  <div id="captureCloneHost" class="captureCloneHost" aria-hidden="true"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
 
   <script>
@@ -431,6 +516,7 @@
     let lastAcceptedSnappedResult = null;
     let lastProcessedTimestamp = 0;
     let html2canvasLoader = null;
+    let latestCaptureDataUrl = "";
 
     const stationEl = document.getElementById("station");
     const offsetEl = document.getElementById("offset");
@@ -444,6 +530,13 @@
     const captureBtnEl = document.getElementById("captureBtn");
     const captureAreaEl = document.getElementById("captureArea");
     const noteInputEl = document.getElementById("noteInput");
+
+    const captureOverlayEl = document.getElementById("captureOverlay");
+    const captureOverlayTextEl = document.getElementById("captureOverlayText");
+    const capturePreviewEl = document.getElementById("capturePreview");
+    const saveCaptureBtnEl = document.getElementById("saveCaptureBtn");
+    const closeCaptureBtnEl = document.getElementById("closeCaptureBtn");
+    const captureCloneHostEl = document.getElementById("captureCloneHost");
 
     function setStatus(message, isGood = true) {
       statusEl.textContent = message;
@@ -803,104 +896,61 @@
       return html2canvasLoader;
     }
 
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob);
+    function dataUrlToDownload(dataUrl, filename) {
       const link = document.createElement("a");
-      link.href = url;
+      link.href = dataUrl;
       link.download = filename;
       link.rel = "noopener";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
     }
 
-    function buildLoadingTab(win) {
-      win.document.open();
-      win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>Preparing Capture</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #111111;
-      color: #B8E8E1;
-      min-height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
-    }
-    .msg {
-      font-size: 18px;
-      text-align: center;
-      padding: 24px;
-    }
-  </style>
-</head>
-<body>
-  <div class="msg">Preparing capture...</div>
-</body>
-</html>`);
-      win.document.close();
-    }
+    function openCaptureOverlay(dataUrl) {
+      latestCaptureDataUrl = dataUrl;
+      capturePreviewEl.src = dataUrl;
 
-    function writeImageToTab(win, dataUrl) {
-      win.document.open();
-      win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>Stationing Capture</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #111111;
-      min-height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <img src="${dataUrl}" alt="Stationing capture" />
-</body>
-</html>`);
-      win.document.close();
-    }
-
-    function makeCaptureSafeClone(clonedDoc) {
-      const root = clonedDoc.getElementById("captureArea");
-      if (!root) return;
-
-      const title = root.querySelector(".title");
-      if (title) {
-        title.style.fontFamily = "Arial, sans-serif";
-        title.style.transform = "none";
-        title.style.fontWeight = "700";
-        title.style.letterSpacing = "0";
+      if (IS_IOS) {
+        captureOverlayTextEl.textContent = "Press and hold the image, then tap Save to Photos.";
+        saveCaptureBtnEl.textContent = "Open Image";
+      } else {
+        captureOverlayTextEl.textContent = "Preview generated. Use Save to download the PNG.";
+        saveCaptureBtnEl.textContent = "Save";
       }
 
-      const note = root.querySelector("#noteInput");
-      if (note) {
-        note.value = noteInputEl.value;
+      captureOverlayEl.classList.add("open");
+      captureOverlayEl.setAttribute("aria-hidden", "false");
+    }
+
+    function closeCaptureOverlay() {
+      captureOverlayEl.classList.remove("open");
+      captureOverlayEl.setAttribute("aria-hidden", "true");
+    }
+
+    function buildCaptureClone() {
+      captureCloneHostEl.innerHTML = "";
+
+      const clone = captureAreaEl.cloneNode(true);
+      clone.id = "captureAreaClone";
+
+      const noteClone = clone.querySelector("#noteInput");
+      if (noteClone) {
+        noteClone.value = noteInputEl.value;
       }
 
-      const fastBtn = root.querySelector("#fastModeBtn");
-      const slowBtn = root.querySelector("#slowModeBtn");
-      const captureBtn = root.querySelector("#captureBtn");
+      const titleClone = clone.querySelector(".title");
+      if (titleClone) {
+        titleClone.style.fontFamily = "Arial, sans-serif";
+        titleClone.style.transform = "none";
+        titleClone.style.fontWeight = "700";
+        titleClone.style.letterSpacing = "0";
+      }
 
-      const safeButtonText = (btn, text, active) => {
+      const fastClone = clone.querySelector("#fastModeBtn");
+      const slowClone = clone.querySelector("#slowModeBtn");
+      const captureCloneBtn = clone.querySelector("#captureBtn");
+
+      function makeSafeButton(btn, text, active) {
         if (!btn) return;
         btn.innerHTML = "";
         btn.style.display = "flex";
@@ -915,76 +965,121 @@
         btn.style.boxShadow = "none";
         btn.style.background = "transparent";
         btn.textContent = text;
-      };
+      }
 
-      safeButtonText(fastBtn, "FAST", currentMode === "fast");
-      safeButtonText(slowBtn, "SLOW", currentMode === "slow");
-      safeButtonText(captureBtn, "CAP", true);
+      makeSafeButton(fastClone, "FAST", currentMode === "fast");
+      makeSafeButton(slowClone, "SLOW", currentMode === "slow");
+      makeSafeButton(captureCloneBtn, "CAP", true);
 
-      root.querySelectorAll(".modeIcon, .cameraIcon").forEach(el => {
-        el.remove();
-      });
+      clone.querySelectorAll(".modeIcon, .cameraIcon").forEach(el => el.remove());
 
-      root.querySelectorAll("*").forEach(el => {
+      clone.querySelectorAll("*").forEach(el => {
         el.style.textShadow = "none";
-        if (el.style.filter) el.style.filter = "none";
-        if (el.style.backdropFilter) el.style.backdropFilter = "none";
+        el.style.filter = "none";
+        el.style.backdropFilter = "none";
+        el.style.webkitBackdropFilter = "none";
+        el.style.animation = "none";
+        el.style.transition = "none";
       });
+
+      captureCloneHostEl.appendChild(clone);
+      return clone;
     }
 
-    async function renderCaptureCanvas(html2canvas) {
-      return html2canvas(captureAreaEl, {
-        backgroundColor: "#1B1B1B",
-        scale: Math.min(window.devicePixelRatio || 1, 2),
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        foreignObjectRendering: false,
-        onclone: makeCaptureSafeClone
-      });
-    }
-
-    async function captureCard() {
-      let popupWin = null;
+    async function renderCaptureFromClone(html2canvas) {
+      const clone = buildCaptureClone();
 
       try {
-        captureBtnEl.disabled = true;
-        setStatus("Capturing card...", true);
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-        if (IS_IOS) {
-          popupWin = window.open("about:blank", "_blank");
-          if (!popupWin) {
-            throw new Error("Popup blocked.");
-          }
-          buildLoadingTab(popupWin);
-        }
-
-        const html2canvas = await loadHtml2CanvasIfNeeded();
-        const canvas = await renderCaptureCanvas(html2canvas);
+        const canvas = await html2canvas(clone, {
+          backgroundColor: "#1B1B1B",
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          foreignObjectRendering: false
+        });
 
         const dataUrl = canvas.toDataURL("image/png");
         if (!dataUrl || dataUrl === "data:,") {
           throw new Error("Could not generate image data.");
         }
 
+        return dataUrl;
+      } finally {
+        captureCloneHostEl.innerHTML = "";
+      }
+    }
+
+    async function captureCard() {
+      try {
+        captureBtnEl.disabled = true;
+        setStatus("Capturing card...", true);
+
+        const html2canvas = await loadHtml2CanvasIfNeeded();
+        const dataUrl = await renderCaptureFromClone(html2canvas);
+
         if (IS_IOS) {
-          writeImageToTab(popupWin, dataUrl);
-          setStatus("Capture opened in a new tab.", true);
+          openCaptureOverlay(dataUrl);
+          setStatus("Capture ready. Press and hold the preview image to save it.", true);
           return;
         }
 
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
-        downloadBlob(blob, "stationing-card.png");
-        setStatus("Card captured and downloaded.", true);
+        dataUrlToDownload(dataUrl, "stationing-card.png");
+        openCaptureOverlay(dataUrl);
+        setStatus("Card captured.", true);
       } catch (err) {
-        if (popupWin && !popupWin.closed) {
-          popupWin.close();
-        }
         setStatus(`Capture failed: ${err.message}`, false);
       } finally {
         captureBtnEl.disabled = false;
       }
+    }
+
+    function handleSaveCapture() {
+      if (!latestCaptureDataUrl) return;
+
+      if (IS_IOS) {
+        const win = window.open();
+        if (!win) {
+          setStatus("Could not open image preview window.", false);
+          return;
+        }
+        win.document.open();
+        win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Capture</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111111;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      -webkit-touch-callout: default;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <img src="${latestCaptureDataUrl}" alt="Capture">
+</body>
+</html>`);
+        win.document.close();
+        return;
+      }
+
+      dataUrlToDownload(latestCaptureDataUrl, "stationing-card.png");
     }
 
     function buildProjectDropdown() {
@@ -1041,6 +1136,11 @@
         fastModeBtnEl.addEventListener("click", () => setMode("fast"));
         slowModeBtnEl.addEventListener("click", () => setMode("slow"));
         captureBtnEl.addEventListener("click", captureCard);
+        saveCaptureBtnEl.addEventListener("click", handleSaveCapture);
+        closeCaptureBtnEl.addEventListener("click", closeCaptureOverlay);
+        captureOverlayEl.addEventListener("click", (e) => {
+          if (e.target === captureOverlayEl) closeCaptureOverlay();
+        });
 
         updateModeButtonStyles();
         buildProjectDropdown();
