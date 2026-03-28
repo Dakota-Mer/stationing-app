@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stationing App - Setup Guide</title>
+  <meta name="theme-color" content="#111111" />
+
+  <style>
+    :root {
+      --bg: #111111;
+      --card-bg: #1B1B1B;
+      --title: #EA9C01;
+      --large-text: #B8E8E1;
+      --small-text: #1BB69F;
+      --accent: #16927F;
+      --muted: #9d9d9d;
+      --border: #2A2A2A;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--large-text);
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      color: var(--title);
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px;
+      border-radius: 14px;
+      border: 2px solid var(--accent);
+      color: var(--large-text);
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #111;
+    }
+
+    h2 {
+      font-size: 18px;
+      color: var(--small-text);
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    ol {
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    li {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .video {
+      width: 100%;
+      border-radius: 16px;
+      margin-top: 10px;
+    }
+
+    .screenshot {
+      width: 100%;
+      border-radius: 16px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="card">
+      <div class="title">Stationing</div>
+      <div class="subtitle">
+        Setup guide and how to use the app in the field
+      </div>
+
+      <a class="btn primary" href="../index.html">Open App</a>
+    </div>
+
+    <!-- WHAT IT DOES -->
+    <div class="card">
+      <h2>What This App Does</h2>
+      <p>
+        Uses GPS and a project centerline to give you real-time station,
+        side (LT/RT), and offset in the field.
+      </p>
+      <p>
+        Designed for inspectors, layout checks, and quick station reference.
+      </p>
+    </div>
+
+    <!-- INSTALL -->
+    <div class="card">
+      <h2>Add to Home Screen</h2>
+
+      <p><strong>iPhone:</strong></p>
+      <ol>
+        <li>Open in Safari</li>
+        <li>Tap the Share button</li>
+        <li>Select <strong>Add to Home Screen</strong></li>
+      </ol>
+
+      <p style="margin-top:12px;"><strong>Android:</strong></p>
+      <ol>
+        <li>Open in Chrome</li>
+        <li>Tap menu (3 dots)</li>
+        <li>Select <strong>Add to Home screen</strong></li>
+      </ol>
+    </div>
+
+    <!-- HOW TO USE -->
+    <div class="card">
+      <h2>How to Use</h2>
+      <ol>
+        <li>Select the correct project</li>
+        <li>Allow GPS access</li>
+        <li>Wait for accuracy to stabilize</li>
+        <li>Read station / side / offset</li>
+        <li>Add a note if needed</li>
+        <li>Use capture button if needed</li>
+      </ol>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="card">
+      <h2>Quick Demo</h2>
+      <video class="video" controls playsinline>
+        <source src="../assets/demo.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <!-- SCREENSHOT -->
+    <div class="card">
+      <h2>App Preview</h2>
+      <img class="screenshot" src="../assets/screenshot-1.png" />
+    </div>
+
+    <!-- DOWNLOADS -->
+    <div class="card">
+      <h2>Downloads</h2>
+
+      <a class="btn" href="../assets/Stationing-Guide.pdf" download>
+        PDF Guide
+      </a>
+
+      <a class="btn" href="../assets/demo.mp4" download>
+        Download Video
+      </a>
+
+      <a class="btn" href="../assets/app-icon.png" download>
+        App Icon
+      </a>
+    </div>
+
+    <div class="footer">
+      Stationing App • Field Tool
+    </div>
+
+  </div>
+
+</body>
+</html>
