@@ -569,7 +569,7 @@
 
     <div class="actionRow">
       <button id="savePointBtn" class="actionBtn primary" type="button">Save Point</button>
-      <a class="actionBtn" href="/onboarding/" target="_blank" rel="noopener">Help</a>
+      <a class="actionBtn" href="/onboarding/">Help</a>
     </div>
 
     <div class="cameraWrap">
@@ -608,7 +608,7 @@
     const PROJECTS = [
       { name: "Project 1", file: "project1.geojson", startStationFeet: 200 },
       { name: "sidewalk", file: "sidewalk.geojson", startStationFeet: 0 },
-      { name: "Kings Gate"", file: ""kingsgate.geojson", startStationFeet: 1000 },
+      { name: "Kings Gate", file: "kingsgate.geojson", startStationFeet: 1000 },
       { name: "Mcvoid", file: "mcvoid.geojson", startStationFeet: 812 },
       { name: "FM 3325", file: "3616-01-020.geojson", startStationFeet: 0 }
     ];
@@ -747,7 +747,7 @@
     }
 
     function getSegmentForSnap(lineCoords, snappedIndex) {
-      if (lineCoords.length < 2) return null;
+      if (!lineCoords || lineCoords.length < 2) return null;
 
       if (snappedIndex >= 0 && snappedIndex < lineCoords.length - 1) {
         return [lineCoords[snappedIndex], lineCoords[snappedIndex + 1]];
@@ -1319,11 +1319,9 @@
 
         if (IS_IOS) {
           setStatus("Capture ready. Press and hold the preview image to save it.", true);
-          return;
+        } else {
+          setStatus("Capture ready. Use Save to download the PNG.", true);
         }
-
-        triggerDownloadFromDataUrl(dataUrl, "stationing-card.png");
-        setStatus("Card captured.", true);
       } catch (err) {
         setStatus(`Capture failed: ${err.message}`, false);
       } finally {
@@ -1485,9 +1483,13 @@
           deleteBtn.type = "button";
           deleteBtn.textContent = "Delete";
           deleteBtn.addEventListener("click", async () => {
-            await deleteSavedPoint(point.id);
-            await refreshSavedPoints();
-            setStatus("Saved point deleted.", true);
+            try {
+              await deleteSavedPoint(point.id);
+              await refreshSavedPoints();
+              setStatus("Saved point deleted.", true);
+            } catch (err) {
+              setStatus(`Delete failed: ${err.message}`, false);
+            }
           });
 
           topRow.appendChild(stationWrap);
@@ -1572,6 +1574,10 @@
 
     async function startApp() {
       try {
+        if (typeof turf === "undefined") {
+          throw new Error("Turf failed to load.");
+        }
+
         if (!Array.isArray(PROJECTS) || PROJECTS.length === 0) {
           throw new Error("No projects configured in the PROJECTS list.");
         }
