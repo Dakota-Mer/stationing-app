@@ -26,6 +26,9 @@
       --status-bg: #252525;
       --good: #1BB69F;
       --bad: #ff8e8e;
+      --muted: #9d9d9d;
+      --saved-card: #222222;
+      --danger: #b65a5a;
     }
 
     * {
@@ -45,9 +48,9 @@
     body {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
-      padding: 18px 16px;
+      padding: 18px 16px 28px;
     }
 
     .card {
@@ -99,6 +102,8 @@
 
     .iconBtn:active,
     .cameraBtn:active,
+    .actionBtn:active,
+    .savedDeleteBtn:active,
     .captureOverlayBtn:active {
       transform: scale(0.97);
     }
@@ -223,7 +228,7 @@
     }
 
     .noteWrap {
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     textarea {
@@ -237,13 +242,40 @@
       font-size: 14px;
       line-height: 1.35;
       padding: 14px 14px;
-      resize: none;
+      resize: vertical;
       outline: none;
       display: block;
     }
 
     textarea::placeholder {
       color: #9d9d9d;
+    }
+
+    .actionRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .actionBtn {
+      min-height: 44px;
+      border-radius: 12px;
+      border: 2px solid var(--icon-active);
+      background: transparent;
+      color: var(--large-text);
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 10px 12px;
+    }
+
+    .actionBtn.primary {
+      background: rgba(22, 146, 127, 0.13);
     }
 
     .cameraWrap {
@@ -296,10 +328,108 @@
       font-size: 14px;
       line-height: 1.35;
       color: var(--large-text);
+      margin-bottom: 16px;
     }
 
     .good { color: var(--good); }
     .bad { color: var(--bad); }
+
+    .savedWrap {
+      margin-top: 8px;
+    }
+
+    .savedHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .savedTitle {
+      color: var(--small-text);
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .savedMeta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .savedEmpty {
+      background: var(--saved-card);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .savedList {
+      display: grid;
+      gap: 10px;
+    }
+
+    .savedItem {
+      background: var(--saved-card);
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid #2b2b2b;
+    }
+
+    .savedTopRow {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .savedStation {
+      color: var(--large-text);
+      font-size: 17px;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+
+    .savedDeleteBtn {
+      border: 1px solid var(--danger);
+      background: transparent;
+      color: #ffb7b7;
+      border-radius: 10px;
+      font-size: 12px;
+      padding: 7px 9px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .savedSubRow {
+      color: var(--small-text);
+      font-size: 12px;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .savedNote {
+      color: var(--large-text);
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 8px;
+    }
+
+    .savedNote.empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .savedFooter {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
 
     .captureOverlay {
       position: fixed;
@@ -386,7 +516,7 @@
   </style>
 </head>
 <body>
-  <div class="card" id="captureArea">
+  <div class="card">
     <div class="titleRow">
       <button id="fastModeBtn" class="iconBtn" type="button" aria-label="Fast mode" title="Fast mode">
         <span class="modeIcon rabbit" aria-hidden="true"></span>
@@ -437,6 +567,11 @@
       <textarea id="noteInput" placeholder="Add note"></textarea>
     </div>
 
+    <div class="actionRow">
+      <button id="savePointBtn" class="actionBtn primary" type="button">Save Point</button>
+      <a class="actionBtn" href="/onboarding/" target="_blank" rel="noopener">Help</a>
+    </div>
+
     <div class="cameraWrap">
       <button id="captureBtn" class="cameraBtn" type="button" aria-label="Capture app card" title="Capture app card">
         <span class="cameraIcon" aria-hidden="true"></span>
@@ -444,6 +579,16 @@
     </div>
 
     <div id="status" class="status good">Loading app...</div>
+
+    <div class="savedWrap">
+      <div class="savedHeader">
+        <div class="savedTitle">Saved Points</div>
+        <div id="savedMeta" class="savedMeta">0 saved</div>
+      </div>
+
+      <div id="savedEmpty" class="savedEmpty">No saved points yet.</div>
+      <div id="savedList" class="savedList" hidden></div>
+    </div>
   </div>
 
   <div id="captureOverlay" class="captureOverlay" aria-hidden="true">
@@ -463,8 +608,6 @@
     const PROJECTS = [
       { name: "Project 1", file: "project1.geojson", startStationFeet: 200 },
       { name: "sidewalk", file: "sidewalk.geojson", startStationFeet: 0 },
-      { name: "Kings Gate", file: "kingsgate.geojson", startStationFeet: 1000 },
-      { name: "Mcvoid", file: "mcvoid.geojson", startStationFeet: 812 },
       { name: "FM 3325", file: "3616-01-020.geojson", startStationFeet: 0 }
     ];
 
@@ -493,6 +636,10 @@
 
     const PROJECT_STORAGE_KEY = "stationingAppSelectedProjectIndex";
     const MODE_STORAGE_KEY = "stationingAppTrackingMode";
+    const DB_NAME = "stationingAppDB";
+    const DB_VERSION = 1;
+    const STORE_NAME = "savedPoints";
+
     const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
@@ -500,12 +647,14 @@
     let currentMode = "fast";
     let centerline = null;
     let watchId = null;
+    let db = null;
 
     let recentGpsPoints = [];
     let lastAcceptedRawPoint = null;
     let lastAcceptedSnappedResult = null;
     let lastProcessedTimestamp = 0;
     let latestCaptureDataUrl = "";
+    let latestLivePoint = null;
 
     const stationEl = document.getElementById("station");
     const offsetEl = document.getElementById("offset");
@@ -518,6 +667,10 @@
     const slowModeBtnEl = document.getElementById("slowModeBtn");
     const captureBtnEl = document.getElementById("captureBtn");
     const noteInputEl = document.getElementById("noteInput");
+    const savePointBtnEl = document.getElementById("savePointBtn");
+    const savedListEl = document.getElementById("savedList");
+    const savedEmptyEl = document.getElementById("savedEmpty");
+    const savedMetaEl = document.getElementById("savedMeta");
 
     const captureOverlayEl = document.getElementById("captureOverlay");
     const captureOverlayTextEl = document.getElementById("captureOverlayText");
@@ -565,6 +718,7 @@
       offsetEl.textContent = "--.- ft";
       sideEl.textContent = "--";
       accuracyEl.textContent = "--";
+      latestLivePoint = null;
       updateProjectInfoDisplay();
     }
 
@@ -573,6 +727,7 @@
       lastAcceptedRawPoint = null;
       lastAcceptedSnappedResult = null;
       lastProcessedTimestamp = 0;
+      latestLivePoint = null;
       updateProjectInfoDisplay();
     }
 
@@ -831,9 +986,25 @@
           offsetFeet
         };
 
-        stationEl.textContent = formatStation(displayedStationFeet);
-        offsetEl.textContent = `${offsetFeet.toFixed(2)} ft`;
-        sideEl.textContent = sideText;
+        latestLivePoint = {
+          project: project.name,
+          projectFile: project.file,
+          mode: currentMode,
+          stationText: formatStation(displayedStationFeet),
+          stationFeet: Number(displayedStationFeet.toFixed(2)),
+          side: sideText,
+          offsetText: `${offsetFeet.toFixed(2)} ft`,
+          offsetFeet: Number(offsetFeet.toFixed(2)),
+          accuracyFeet: Number(metersToFeet(accuracyMeters).toFixed(1)),
+          lat: Number(smoothedCoord[1].toFixed(7)),
+          lon: Number(smoothedCoord[0].toFixed(7)),
+          note: noteInputEl.value.trim(),
+          capturedAt: new Date().toISOString()
+        };
+
+        stationEl.textContent = latestLivePoint.stationText;
+        offsetEl.textContent = latestLivePoint.offsetText;
+        sideEl.textContent = latestLivePoint.side;
         updateProjectInfoDisplay();
 
         setStatus(`GPS locked on ${project.name} (${MODES[currentMode].label} mode).`, true);
@@ -1094,7 +1265,6 @@
       const noteBoxH = 230;
       fillRoundRect(ctx, innerX, noteBoxY, innerW, noteBoxH, 18, "#E8F8F5");
 
-      ctx.fillStyle = "#4e5b60";
       ctx.font = "400 25px Arial";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
@@ -1206,6 +1376,163 @@
       triggerDownloadFromDataUrl(latestCaptureDataUrl, "stationing-card.png");
     }
 
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            const store = database.createObjectStore(STORE_NAME, {
+              keyPath: "id",
+              autoIncrement: true
+            });
+            store.createIndex("createdAt", "createdAt", { unique: false });
+            store.createIndex("project", "project", { unique: false });
+          }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("IndexedDB failed to open."));
+      });
+    }
+
+    function getStore(mode = "readonly") {
+      if (!db) throw new Error("Database not ready.");
+      return db.transaction(STORE_NAME, mode).objectStore(STORE_NAME);
+    }
+
+    function addSavedPoint(point) {
+      return new Promise((resolve, reject) => {
+        const request = getStore("readwrite").add(point);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("Failed to save point."));
+      });
+    }
+
+    function getAllSavedPoints() {
+      return new Promise((resolve, reject) => {
+        const request = getStore("readonly").getAll();
+        request.onsuccess = () => {
+          const items = Array.isArray(request.result) ? request.result : [];
+          items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          resolve(items);
+        };
+        request.onerror = () => reject(request.error || new Error("Failed to load saved points."));
+      });
+    }
+
+    function deleteSavedPoint(id) {
+      return new Promise((resolve, reject) => {
+        const request = getStore("readwrite").delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error || new Error("Failed to delete saved point."));
+      });
+    }
+
+    function formatSavedDate(dateString) {
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString([], {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    async function refreshSavedPoints() {
+      try {
+        const points = await getAllSavedPoints();
+        savedMetaEl.textContent = `${points.length} saved`;
+
+        if (points.length === 0) {
+          savedEmptyEl.hidden = false;
+          savedListEl.hidden = true;
+          savedListEl.innerHTML = "";
+          return;
+        }
+
+        savedEmptyEl.hidden = true;
+        savedListEl.hidden = false;
+        savedListEl.innerHTML = "";
+
+        for (const point of points) {
+          const item = document.createElement("div");
+          item.className = "savedItem";
+
+          const topRow = document.createElement("div");
+          topRow.className = "savedTopRow";
+
+          const stationWrap = document.createElement("div");
+          const station = document.createElement("div");
+          station.className = "savedStation";
+          station.textContent = `${point.stationText || "--+--"} ${point.side || "--"}`;
+
+          const subRow = document.createElement("div");
+          subRow.className = "savedSubRow";
+          subRow.textContent = `${point.project || "Unknown Project"} • ${point.offsetText || "--.- ft"} • ${point.accuracyFeet ?? "--"} ft acc`;
+
+          stationWrap.appendChild(station);
+          stationWrap.appendChild(subRow);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "savedDeleteBtn";
+          deleteBtn.type = "button";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.addEventListener("click", async () => {
+            await deleteSavedPoint(point.id);
+            await refreshSavedPoints();
+            setStatus("Saved point deleted.", true);
+          });
+
+          topRow.appendChild(stationWrap);
+          topRow.appendChild(deleteBtn);
+
+          const note = document.createElement("div");
+          note.className = "savedNote" + (!point.note ? " empty" : "");
+          note.textContent = point.note || "No note";
+
+          const footer = document.createElement("div");
+          footer.className = "savedFooter";
+          footer.textContent = `Saved ${formatSavedDate(point.createdAt)} • ${point.lat ?? "--"}, ${point.lon ?? "--"}`;
+
+          item.appendChild(topRow);
+          item.appendChild(note);
+          item.appendChild(footer);
+
+          savedListEl.appendChild(item);
+        }
+      } catch (err) {
+        setStatus(`Saved points error: ${err.message}`, false);
+      }
+    }
+
+    async function handleSavePoint() {
+      try {
+        if (!latestLivePoint) {
+          setStatus("No live station to save yet. Wait for GPS lock first.", false);
+          return;
+        }
+
+        const note = noteInputEl.value.trim();
+
+        const pointToSave = {
+          ...latestLivePoint,
+          note,
+          createdAt: new Date().toISOString()
+        };
+
+        await addSavedPoint(pointToSave);
+        await refreshSavedPoints();
+        setStatus("Point saved locally on this device.", true);
+      } catch (err) {
+        setStatus(`Save failed: ${err.message}`, false);
+      }
+    }
+
     function buildProjectDropdown() {
       projectSelectEl.innerHTML = "";
 
@@ -1247,6 +1574,8 @@
           throw new Error("No projects configured in the PROJECTS list.");
         }
 
+        db = await openDatabase();
+
         const savedProjectIndex = Number(localStorage.getItem(PROJECT_STORAGE_KEY));
         if (!Number.isNaN(savedProjectIndex) && savedProjectIndex >= 0 && savedProjectIndex < PROJECTS.length) {
           currentProjectIndex = savedProjectIndex;
@@ -1262,14 +1591,23 @@
         captureBtnEl.addEventListener("click", captureCard);
         saveCaptureBtnEl.addEventListener("click", handleSaveCapture);
         closeCaptureBtnEl.addEventListener("click", closeCaptureOverlay);
+        savePointBtnEl.addEventListener("click", handleSavePoint);
+
         captureOverlayEl.addEventListener("click", (e) => {
           if (e.target === captureOverlayEl) closeCaptureOverlay();
+        });
+
+        noteInputEl.addEventListener("input", () => {
+          if (latestLivePoint) {
+            latestLivePoint.note = noteInputEl.value.trim();
+          }
         });
 
         updateModeButtonStyles();
         buildProjectDropdown();
         updateProjectInfoDisplay();
         await loadCenterlineForCurrentProject();
+        await refreshSavedPoints();
         startGpsWatch();
         setStatus("App ready. Waiting for GPS...", true);
       } catch (err) {
