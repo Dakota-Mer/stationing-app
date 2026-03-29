@@ -2,218 +2,1067 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stationing App - Setup Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Stationing App Help</title>
   <meta name="theme-color" content="#111111" />
 
   <style>
+    @font-face {
+      font-family: "AceBruno";
+      src: url("../BrunoAceSC-Regular.ttf") format("truetype");
+      font-display: swap;
+    }
+
     :root {
       --bg: #111111;
-      --card-bg: #1B1B1B;
-      --title: #EA9C01;
-      --large-text: #B8E8E1;
-      --small-text: #1BB69F;
-      --accent: #16927F;
+      --panel: #1b1b1b;
+      --panel-2: #222222;
+      --panel-3: #252525;
+      --border: #2d2d2d;
+      --title: #ea9c01;
+      --text: #b8e8e1;
+      --text-soft: #98c9c2;
+      --label: #1bb69f;
+      --accent: #16927f;
+      --accent-dark: #106d5f;
       --muted: #9d9d9d;
-      --border: #2A2A2A;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --max-width: 1180px;
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(22, 146, 127, 0.08), transparent 28%),
+        linear-gradient(180deg, #131313 0%, #111111 100%);
+      color: var(--text);
       font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--large-text);
-      padding: 16px;
     }
 
-    .container {
-      max-width: 460px;
+    a {
+      color: inherit;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: var(--max-width);
       margin: 0 auto;
+      padding: 18px 16px 48px;
     }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 24px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    .hero {
+      background: linear-gradient(180deg, rgba(27,27,27,0.98), rgba(22,22,22,0.98));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .heroInner {
+      padding: 24px 18px 22px;
+    }
+
+    .topBar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brandIcon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 146, 127, 0.08);
+      flex-shrink: 0;
+    }
+
+    .brandIcon svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--accent);
+    }
+
+    .brandText {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      color: var(--label);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
     }
 
     .title {
-      text-align: center;
-      font-size: 28px;
+      margin: 0;
+      line-height: 1;
+      font-family: "AceBruno", Arial, sans-serif;
+      font-size: 30px;
       color: var(--title);
-      margin-bottom: 10px;
-      font-weight: bold;
+      transform: scaleY(1.12);
+      transform-origin: left center;
+      white-space: nowrap;
     }
 
-    .subtitle {
-      text-align: center;
-      color: var(--muted);
+    .backBtn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
       font-size: 14px;
+      font-weight: bold;
+      background: transparent;
+      flex-shrink: 0;
+    }
+
+    .heroGrid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .heroText {
+      min-width: 0;
+    }
+
+    .heroHeadline {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.08;
+      color: var(--text);
+    }
+
+    .heroCopy {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 15px;
+      line-height: 1.55;
+      max-width: 62ch;
+    }
+
+    .heroCards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .miniCard {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+    }
+
+    .miniCardLabel {
+      color: var(--label);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .miniCardValue {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1.25;
+    }
+
+    .navCard {
+      background: linear-gradient(180deg, #1b1b1b, #181818);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .navWrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .navLink {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      text-decoration: none;
+      background: var(--panel-3);
+      transition: border-color 0.15s ease, transform 0.08s ease;
+    }
+
+    .navLink:active {
+      transform: scale(0.99);
+    }
+
+    .navLink:hover {
+      border-color: rgba(22, 146, 127, 0.45);
+    }
+
+    .navIcon {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(22, 146, 127, 0.45);
+      background: rgba(22, 146, 127, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .navIcon svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent);
+    }
+
+    .navText {
+      min-width: 0;
+    }
+
+    .navTitle {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.25;
+      margin-bottom: 2px;
+    }
+
+    .navSub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 22px 0;
+      background: linear-gradient(90deg, transparent, rgba(22,146,127,0.55), transparent);
+      border: 0;
+    }
+
+    .sectionCard {
+      background: linear-gradient(180deg, var(--panel), #171717);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .sectionInner {
+      padding: 18px;
+    }
+
+    .sectionHeader {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
       margin-bottom: 16px;
     }
 
-    .btn {
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 14px;
+    .sectionIcon {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
       border-radius: 14px;
       border: 2px solid var(--accent);
-      color: var(--large-text);
-      text-decoration: none;
-      font-weight: bold;
-      margin-top: 10px;
+      background: rgba(22, 146, 127, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
     }
 
-    .btn.primary {
-      background: var(--accent);
-      color: #111;
+    .sectionIcon svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--accent);
     }
 
-    h2 {
-      font-size: 18px;
-      color: var(--small-text);
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 14px;
-      line-height: 1.4;
-      margin-bottom: 10px;
-    }
-
-    ol {
-      padding-left: 18px;
-      margin: 0;
-    }
-
-    li {
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .video {
-      width: 100%;
-      border-radius: 16px;
-      margin-top: 10px;
-    }
-
-    .screenshot {
-      width: 100%;
-      border-radius: 16px;
-      margin-top: 10px;
-      border: 1px solid var(--border);
-    }
-
-    .footer {
-      text-align: center;
+    .sectionEyebrow {
+      color: var(--label);
       font-size: 12px;
-      color: var(--muted);
-      margin-top: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
     }
 
+    .sectionTitle {
+      margin: 0;
+      color: var(--text);
+      font-size: 24px;
+      line-height: 1.12;
+    }
+
+    .sectionDesc {
+      margin: 8px 0 0;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 70ch;
+    }
+
+    .steps {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .stepTop {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .stepNum {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 999px;
+      background: rgba(22, 146, 127, 0.12);
+      border: 1px solid rgba(22, 146, 127, 0.45);
+      color: var(--label);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .stepTitle {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1.3;
+      margin: 2px 0 0;
+    }
+
+    .stepBody {
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.5;
+      padding-left: 42px;
+    }
+
+    .grid2,
+    .grid3 {
+      display: grid;
+      gap: 12px;
+    }
+
+    .infoCard {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .infoCardTitle {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .infoCardText {
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chipRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      border: 1px solid rgba(22, 146, 127, 0.35);
+      background: rgba(22, 146, 127, 0.08);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .mediaBox {
+      background: #151515;
+      border: 1px dashed rgba(22, 146, 127, 0.45);
+      border-radius: 18px;
+      min-height: 220px;
+      padding: 16px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(234, 156, 1, 0.08);
+      border: 1px solid rgba(234, 156, 1, 0.25);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .calloutIcon {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      border-radius: 10px;
+      background: rgba(234, 156, 1, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calloutIcon svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--title);
+    }
+
+    .calloutText {
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .footerCard {
+      background: linear-gradient(180deg, #1b1b1b, #161616);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .footerTitle {
+      color: var(--text);
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .footerText {
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 60ch;
+      margin: 0 auto 14px;
+    }
+
+    .footerActions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .footerBtn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid var(--accent);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      background: transparent;
+    }
+
+    .footerBtn.primary {
+      background: rgba(22, 146, 127, 0.12);
+    }
+
+    @media (min-width: 700px) {
+      .shell {
+        padding: 26px 22px 64px;
+      }
+
+      .heroInner,
+      .sectionInner,
+      .footerCard,
+      .navCard {
+        padding: 24px;
+      }
+
+      .heroGrid {
+        grid-template-columns: 1.3fr 0.9fr;
+        align-items: center;
+      }
+
+      .heroCards {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .navWrap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .heroHeadline {
+        font-size: 36px;
+      }
+
+      .sectionTitle {
+        font-size: 28px;
+      }
+    }
+
+    @media (min-width: 980px) {
+      .shell {
+        padding-left: 28px;
+        padding-right: 28px;
+      }
+
+      .title {
+        font-size: 34px;
+      }
+
+      .heroHeadline {
+        font-size: 42px;
+      }
+
+      .heroCopy,
+      .sectionDesc,
+      .infoCardText,
+      .stepBody,
+      .calloutText,
+      .footerText {
+        font-size: 15px;
+      }
+
+      .sectionInner {
+        padding: 28px;
+      }
+    }
   </style>
 </head>
 <body>
+  <main class="shell">
+    <section class="hero">
+      <div class="heroInner">
+        <div class="topBar">
+          <div class="brand">
+            <div class="brandIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2l7 4v5c0 5.25-3.39 9.7-7 11-3.61-1.3-7-5.75-7-11V6l7-4zm0 3.15L7 7.94v3.01c0 3.9 2.35 7.16 5 8.28 2.65-1.12 5-4.38 5-8.28V7.94l-5-2.79z"/>
+              </svg>
+            </div>
+            <div class="brandText">
+              <div class="eyebrow">Help & Setup Guide</div>
+              <h1 class="title">Stationing</h1>
+            </div>
+          </div>
 
-  <div class="container">
+          <a class="backBtn" href="/">Back to App</a>
+        </div>
 
-    <!-- HEADER -->
-    <div class="card">
-      <div class="title">Stationing</div>
-      <div class="subtitle">
-        Setup guide and how to use the app in the field
+        <div class="heroGrid">
+          <div class="heroText">
+            <h2 class="heroHeadline">Get the app installed, learn the controls, and avoid the common mistakes.</h2>
+            <p class="heroCopy">
+              This guide is built to work on phones, tablets, and full-size computer monitors. It keeps the same dark theme, orange title, teal accents, and card-based style as the app so it feels like the same product instead of a separate site.
+            </p>
+          </div>
+
+          <div class="heroCards">
+            <div class="miniCard">
+              <div class="miniCardLabel">Best On</div>
+              <div class="miniCardValue">iPhone home screen as a PWA</div>
+            </div>
+            <div class="miniCard">
+              <div class="miniCardLabel">Needs</div>
+              <div class="miniCardValue">Location permission and project file selection</div>
+            </div>
+            <div class="miniCard">
+              <div class="miniCardLabel">Works With</div>
+              <div class="miniCardValue">Station, side, offset, save points, and capture</div>
+            </div>
+            <div class="miniCard">
+              <div class="miniCardLabel">Tip</div>
+              <div class="miniCardValue">Stand still a few seconds for cleaner results</div>
+            </div>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <a class="btn primary" href="../index.html">Open App</a>
-    </div>
+    <section class="navCard">
+      <div class="navWrap">
+        <a class="navLink" href="#install">
+          <div class="navIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3a1 1 0 011 1v8.59l2.3-2.29a1 1 0 111.4 1.41l-4 3.99a1 1 0 01-1.4 0l-4-3.99a1 1 0 111.4-1.41L11 12.59V4a1 1 0 011-1zm-7 14a1 1 0 011 1v1h12v-1a1 1 0 112 0v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2a1 1 0 011-1z"/>
+            </svg>
+          </div>
+          <div class="navText">
+            <div class="navTitle">Install</div>
+            <div class="navSub">Add it to your phone home screen</div>
+          </div>
+        </a>
 
-    <!-- WHAT IT DOES -->
-    <div class="card">
-      <h2>What This App Does</h2>
-      <p>
-        Uses GPS and a project centerline to give you real-time station,
-        side (LT/RT), and offset in the field.
+        <a class="navLink" href="#use">
+          <div class="navIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5a1 1 0 10-2 0v5c0 .27.11.52.29.71l3 3a1 1 0 001.42-1.42L13 11.59V7z"/>
+            </svg>
+          </div>
+          <div class="navText">
+            <div class="navTitle">Use the App</div>
+            <div class="navSub">Project selection, GPS, and reading results</div>
+          </div>
+        </a>
+
+        <a class="navLink" href="#savepoints">
+          <div class="navIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M17 3H5a2 2 0 00-2 2v14l4-3h10a2 2 0 002-2V5a2 2 0 00-2-2zm-1 9H8a1 1 0 110-2h8a1 1 0 110 2zm0-4H8a1 1 0 110-2h8a1 1 0 110 2z"/>
+            </svg>
+          </div>
+          <div class="navText">
+            <div class="navTitle">Save Points</div>
+            <div class="navSub">Store notes and reopen them later</div>
+          </div>
+        </a>
+
+        <a class="navLink" href="#capture">
+          <div class="navIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M9 4l-1.17 2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-2.83L15 4H9zm3 13a4 4 0 100-8 4 4 0 000 8z"/>
+            </svg>
+          </div>
+          <div class="navText">
+            <div class="navTitle">Capture</div>
+            <div class="navSub">Save a clean image of the current card</div>
+          </div>
+        </a>
+
+        <a class="navLink" href="#troubleshooting">
+          <div class="navIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M11 15h2v2h-2zm1-13C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18a8 8 0 110-16 8 8 0 010 16zm0-14a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 1.75-3 5h2c0-2 3-2.25 3-5a4 4 0 00-4-4z"/>
+            </svg>
+          </div>
+          <div class="navText">
+            <div class="navTitle">Troubleshooting</div>
+            <div class="navSub">What to check when results look wrong</div>
+          </div>
+        </a>
+
+        <a class="navLink" href="#media">
+          <div class="navIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 5h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm5 3v8l7-4-7-4z"/>
+            </svg>
+          </div>
+          <div class="navText">
+            <div class="navTitle">Screenshots & Video</div>
+            <div class="navSub">Drop your own images or demo clip in here</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section id="install" class="sectionCard">
+      <div class="sectionInner">
+        <div class="sectionHeader">
+          <div class="sectionIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3a1 1 0 011 1v8.59l2.3-2.29a1 1 0 111.4 1.41l-4 3.99a1 1 0 01-1.4 0l-4-3.99a1 1 0 111.4-1.41L11 12.59V4a1 1 0 011-1zm-7 14a1 1 0 011 1v1h12v-1a1 1 0 112 0v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2a1 1 0 011-1z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sectionEyebrow">Install</div>
+            <h2 class="sectionTitle">Add the app to your home screen</h2>
+            <p class="sectionDesc">
+              The app works best when installed from Safari on iPhone so it launches like a normal app instead of a browser tab.
+            </p>
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">1</div>
+              <div class="stepTitle">Open the app in Safari</div>
+            </div>
+            <div class="stepBody">
+              Open the site link in Safari, not another browser. On iPhone, Safari gives the cleanest install path for a PWA.
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">2</div>
+              <div class="stepTitle">Tap the Share button</div>
+            </div>
+            <div class="stepBody">
+              The Share button is the square with the upward arrow. Scroll the share sheet until you see the install option.
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">3</div>
+              <div class="stepTitle">Choose “Add to Home Screen”</div>
+            </div>
+            <div class="stepBody">
+              Confirm the name, then tap Add. The app icon will appear on your home screen like a normal installed app.
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">4</div>
+              <div class="stepTitle">Open it from the new icon</div>
+            </div>
+            <div class="stepBody">
+              Launch from the home screen icon after installing. That gives the clean app-style view with less browser clutter.
+            </div>
+          </div>
+        </div>
+
+        <div class="chipRow">
+          <div class="chip">Use Safari</div>
+          <div class="chip">Allow Location</div>
+          <div class="chip">Best on Home Screen</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="use" class="sectionCard">
+      <div class="sectionInner">
+        <div class="sectionHeader">
+          <div class="sectionIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5a1 1 0 10-2 0v5c0 .27.11.52.29.71l3 3a1 1 0 001.42-1.42L13 11.59V7z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sectionEyebrow">Use</div>
+            <h2 class="sectionTitle">How to use the stationing screen</h2>
+            <p class="sectionDesc">
+              The workflow is simple: pick the correct project, wait for good GPS, then read station, side, and offset.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="infoCard">
+            <div class="infoCardTitle">Pick the right project</div>
+            <div class="infoCardText">
+              Use the project dropdown first. If the wrong centerline file is selected, the stationing result will be wrong even if your GPS is good.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">Wait for the GPS to settle</div>
+            <div class="infoCardText">
+              Give the phone a few seconds while standing still. The app smooths multiple GPS points together to reduce random jumpiness.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">Read the result row</div>
+            <div class="infoCardText">
+              Station shows position along the centerline. Side shows LT or RT. Offset shows how far you are from the line.
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid2">
+          <div class="infoCard">
+            <div class="infoCardTitle">Fast mode</div>
+            <div class="infoCardText">
+              Fast mode reacts quicker and uses fewer smoothing points. It feels more responsive, but it can move around more.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">Slow mode</div>
+            <div class="infoCardText">
+              Slow mode uses tighter GPS filtering and more smoothing points. It updates slower, but the result is usually steadier.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="savepoints" class="sectionCard">
+      <div class="sectionInner">
+        <div class="sectionHeader">
+          <div class="sectionIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M17 3H5a2 2 0 00-2 2v14l4-3h10a2 2 0 002-2V5a2 2 0 00-2-2zm-1 9H8a1 1 0 110-2h8a1 1 0 110 2zm0-4H8a1 1 0 110-2h8a1 1 0 110 2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sectionEyebrow">Save Points</div>
+            <h2 class="sectionTitle">Store field notes locally on the device</h2>
+            <p class="sectionDesc">
+              Saved points are meant for quick field reference. They keep the station, side, offset, note, time saved, and coordinates.
+            </p>
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">1</div>
+              <div class="stepTitle">Wait for a live station result</div>
+            </div>
+            <div class="stepBody">
+              You cannot save a meaningful point until the app has a current GPS lock and a displayed stationing result.
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">2</div>
+              <div class="stepTitle">Type a note</div>
+            </div>
+            <div class="stepBody">
+              Add whatever matters: issue location, punch item, utility conflict, picture reference, or inspector note.
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">3</div>
+              <div class="stepTitle">Tap Save Point</div>
+            </div>
+            <div class="stepBody">
+              The point is stored on that device and listed in the Saved Points section below the live result card.
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="stepTop">
+              <div class="stepNum">4</div>
+              <div class="stepTitle">Reopen later and review</div>
+            </div>
+            <div class="stepBody">
+              Saved points should still be there when you reopen the app on the same device and browser context.
+            </div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top: 16px;">
+          <div class="calloutIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+          </div>
+          <div class="calloutText">
+            Saved points are local to the device. They are not a cloud database. If device storage is cleared, private browsing is used, or the browser wipes site data, those saved points can disappear.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="capture" class="sectionCard">
+      <div class="sectionInner">
+        <div class="sectionHeader">
+          <div class="sectionIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M9 4l-1.17 2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-2.83L15 4H9zm3 13a4 4 0 100-8 4 4 0 000 8z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sectionEyebrow">Capture</div>
+            <h2 class="sectionTitle">Save an image of the current stationing card</h2>
+            <p class="sectionDesc">
+              The app uses a manual canvas capture instead of Safari DOM screenshot tricks. That makes it more stable inside iPhone PWAs.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="infoCard">
+            <div class="infoCardTitle">What gets captured</div>
+            <div class="infoCardText">
+              The capture image includes the visible station, side, offset, project, smoothing count, status text, and the note currently typed into the note box.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">How to save on iPhone</div>
+            <div class="infoCardText">
+              After tapping Capture, press and hold the preview image and save it to Photos, or use the provided save/open flow depending on the build.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="troubleshooting" class="sectionCard">
+      <div class="sectionInner">
+        <div class="sectionHeader">
+          <div class="sectionIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M11 15h2v2h-2zm1-13C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18a8 8 0 110-16 8 8 0 010 16zm0-14a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 1.75-3 5h2c0-2 3-2.25 3-5a4 4 0 00-4-4z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sectionEyebrow">Troubleshooting</div>
+            <h2 class="sectionTitle">What to check when something looks off</h2>
+            <p class="sectionDesc">
+              Most bad results come from bad GPS conditions, the wrong project file, or moving too quickly while trying to read a value.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="infoCard">
+            <div class="infoCardTitle">Station seems wrong</div>
+            <div class="infoCardText">
+              Confirm the correct project is selected. Then stop moving and let the GPS settle. If needed, switch to slow mode for a steadier result.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">Offset is jumping around</div>
+            <div class="infoCardText">
+              That usually means poor GPS accuracy, tree cover, nearby structures, or that you are still moving while the phone is trying to smooth points.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">Saved points disappeared</div>
+            <div class="infoCardText">
+              Check whether the app was opened in the same browser/app context. Private browsing and aggressive storage cleanup can wipe local saved data.
+            </div>
+          </div>
+
+          <div class="infoCard">
+            <div class="infoCardTitle">Capture will not save</div>
+            <div class="infoCardText">
+              On iPhone, use the preview flow and save the generated image from there. Desktop and some Android browsers can usually download directly.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="media" class="sectionCard">
+      <div class="sectionInner">
+        <div class="sectionHeader">
+          <div class="sectionIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 5h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm5 3v8l7-4-7-4z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sectionEyebrow">Media</div>
+            <h2 class="sectionTitle">Placeholders for screenshots or a demo video</h2>
+            <p class="sectionDesc">
+              Replace these placeholders with your actual screenshots, screen recordings, or onboarding video when you are ready.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="mediaBox">
+            Replace this box with an image like:
+            <br><br>
+            <strong>install-step-1.png</strong>
+            <br>
+            or a screenshot showing Add to Home Screen
+          </div>
+
+          <div class="mediaBox">
+            Replace this box with:
+            <br><br>
+            <strong>demo.mp4</strong>
+            <br>
+            or a screen recording of selecting a project and getting GPS lock
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="footerCard">
+      <div class="footerTitle">That’s it.</div>
+      <p class="footerText">
+        Keep the guide simple. The goal is not to document everything on earth. It is to get someone from zero to using the app correctly with as little confusion as possible.
       </p>
-      <p>
-        Designed for inspectors, layout checks, and quick station reference.
-      </p>
-    </div>
-
-    <!-- INSTALL -->
-    <div class="card">
-      <h2>Add to Home Screen</h2>
-
-      <p><strong>iPhone:</strong></p>
-      <ol>
-        <li>Open in Safari</li>
-        <li>Tap the Share button</li>
-        <li>Select <strong>Add to Home Screen</strong></li>
-      </ol>
-
-      <p style="margin-top:12px;"><strong>Android:</strong></p>
-      <ol>
-        <li>Open in Chrome</li>
-        <li>Tap menu (3 dots)</li>
-        <li>Select <strong>Add to Home screen</strong></li>
-      </ol>
-    </div>
-
-    <!-- HOW TO USE -->
-    <div class="card">
-      <h2>How to Use</h2>
-      <ol>
-        <li>Select the correct project</li>
-        <li>Allow GPS access</li>
-        <li>Wait for accuracy to stabilize</li>
-        <li>Read station / side / offset</li>
-        <li>Add a note if needed</li>
-        <li>Use capture button if needed</li>
-      </ol>
-    </div>
-
-    <!-- VIDEO -->
-    <div class="card">
-      <h2>Quick Demo</h2>
-      <video class="video" controls playsinline>
-        <source src="../assets/demo.mp4" type="video/mp4">
-      </video>
-    </div>
-
-    <!-- SCREENSHOT -->
-    <div class="card">
-      <h2>App Preview</h2>
-      <img class="screenshot" src="../assets/screenshot-1.png" />
-    </div>
-
-    <!-- DOWNLOADS -->
-    <div class="card">
-      <h2>Downloads</h2>
-
-      <a class="btn" href="../assets/Stationing-Guide.pdf" download>
-        PDF Guide
-      </a>
-
-      <a class="btn" href="../assets/demo.mp4" download>
-        Download Video
-      </a>
-
-      <a class="btn" href="../assets/app-icon.png" download>
-        App Icon
-      </a>
-    </div>
-
-    <div class="footer">
-      Stationing App • Field Tool
-    </div>
-
-  </div>
-
+      <div class="footerActions">
+        <a class="footerBtn primary" href="/">Open App</a>
+        <a class="footerBtn" href="#install">Back to Top Sections</a>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
